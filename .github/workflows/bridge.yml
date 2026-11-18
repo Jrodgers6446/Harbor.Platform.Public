@@ -1,0 +1,36 @@
+name: Bridge zip
+# Zips bridge/ and puts it in the "releases" storage bucket, where the website's download button points.
+on:
+  push:
+    branches: [main]
+    paths: ["bridge/**", ".github/workflows/bridge.yml"]
+  workflow_dispatch:
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip
+        run: |
+          VER=$(python3 -c "import json;print(json.load(open('bridge/manifest.json'))['version'])")
+          echo "VER=$VER" >> "$GITHUB_ENV"
+          cd bridge && zip -r ../harbor-bridge.zip . -x '*.DS_Store' && cd ..
+          ls -l harbor-bridge.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harbor-bridge-${{ env.VER }}
+          path: harbor-bridge.zip
+      - name: Upload to Supabase storage
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_KEY" ] || [ -z "$SUPABASE_URL" ]; then echo "Supabase upload not configured; skipping"; exit 0; fi
+          for NAME in bridge/harbor-bridge.zip "bridge/harbor-bridge-$VER.zip"; do
+            code=$(curl -sS -o /tmp/up.json -w "%{http_code}" -X POST "$SUPABASE_URL/storage/v1/object/releases/$NAME" \
+              -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" -H "apikey: $SUPABASE_SERVICE_KEY" \
+              -H "Content-Type: application/zip" -H "x-upsert: true" --data-binary @harbor-bridge.zip)
+            cat /tmp/up.json; echo
+            if [ "$code" -ge 300 ]; then echo "Upload failed ($code)"; exit 1; fi
+          done
+          echo "Bridge $VER: $SUPABASE_URL/storage/v1/object/public/releases/bridge/harbor-bridge.zip" >> "$GITHUB_STEP_SUMMARY"
