@@ -1,0 +1,58 @@
+name: Build tablet app
+
+on:
+  push:
+    paths: ["android/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Signing key (optional)
+        env:
+          KEYSTORE_B64: ${{ secrets.HARBOR_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/harbor.jks"
+            echo "HARBOR_KEYSTORE_FILE=$RUNNER_TEMP/harbor.jks" >> "$GITHUB_ENV"
+          fi
+      - name: Build APK
+        env:
+          HARBOR_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          HARBOR_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          HARBOR_KEYSTORE_PASSWORD: ${{ secrets.HARBOR_KEYSTORE_PASSWORD }}
+          HARBOR_KEY_ALIAS: ${{ secrets.HARBOR_KEY_ALIAS }}
+          HARBOR_KEY_PASSWORD: ${{ secrets.HARBOR_KEY_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harbor-tech-${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/*.apk
+      # Needs the repo variable SUPABASE_URL and the secret SUPABASE_SERVICE_KEY (the legacy service_role JWT,
+      # because storage wants a JWT). Skipped when the secret isn't set.
+      - name: Upload APK to Supabase storage
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_KEY" ] || [ -z "$SUPABASE_URL" ]; then echo "Supabase upload not configured; skipping"; exit 0; fi
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          NAME="tablet/harbor-tech-${GITHUB_RUN_NUMBER}.apk"
+          code=$(curl -sS -o /tmp/up.json -w "%{http_code}" -X POST "$SUPABASE_URL/storage/v1/object/releases/$NAME" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Content-Type: application/vnd.android.package-archive" -H "x-upsert: true" --data-binary "@$APK")
+          echo "upload -> $code"; cat /tmp/up.json; echo
+          [ "$code" = "200" ] || exit 1
+          echo "Tablet build 0.1.${GITHUB_RUN_NUMBER}: $SUPABASE_URL/storage/v1/object/public/releases/$NAME" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Harbor Bridge</title>
+<style>
+  body { margin: 0; width: 320px; background: #09080c; color: #ede9f6; font: 14px/1.45 Inter, system-ui, sans-serif; }
+  .wrap { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 700 17px 'Space Grotesk', Inter, sans-serif; }
+  .logo { width: 30px; height: 30px; border-radius: 8px; background: #8b5cf6; display: grid; place-items: center; }
+  .label { font-size: 11px; font-weight: 600; color: #7d7690; letter-spacing: .08em; text-transform: uppercase; }
+  .row { display: flex; align-items: center; gap: 10px; background: #121018; border: 1px solid #241f2f; border-radius: 12px; padding: 10px 12px; }
+  .row b { display: block; } .row span.sub { font-size: 12px; color: #a39cb5; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #6b6578; flex: none; } .dot.ok { background: #34d399; } .dot.old { background: #fbc767; }
+  .grow { flex: 1; min-width: 0; }
+  button, select { min-height: 34px; padding: 0 12px; border-radius: 10px; border: 1px solid #3a2a63; background: transparent; color: #d9cbff; font: 600 13px Inter, sans-serif; cursor: pointer; }
+  select { background: #0d0b12; color: #ede9f6; border-color: #2a2436; flex: 1; min-width: 0; }
+  button:hover { background: #1d1630; } button.primary { background: #8b5cf6; border-color: #8b5cf6; color: #fff; }
+  button.x { border: 0; padding: 0 6px; color: #8f88a3; }
+  .muted { color: #8f88a3; font-size: 12px; } .msg { font-size: 12.5px; color: #ff8f8f; }
+  .add { display: flex; gap: 8px; }
+</style></head>
+<body><div class="wrap">
+  <div class="brand"><div class="logo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v13M5 12H3a9 9 0 0 0 18 0h-2M8 11h8"/></svg></div>Harbor Bridge</div>
+  <div class="label">Connections</div>
+  <div id="list"></div>
+  <div class="add" id="addBox"><select id="pick" aria-label="System to connect"></select><button class="primary" id="add">Add</button></div>
+  <div class="msg" id="msg"></div>
+  <button id="site">Open the Harbor website</button>
+  <div class="muted">Add the scheduling and work-order systems your company uses and sign in to each once. The refresh button on the Harbor website reads them all; if one has signed you out, Bridge opens it so you can sign back in. Read-only: Bridge never changes anything in them.</div>
+  <div class="muted" id="ver"></div>
+</div><script src="popup.js"></script></body></html>

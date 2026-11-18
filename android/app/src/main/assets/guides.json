@@ -1,0 +1,39 @@
+[
+  {"device": "Any phone", "repair": "Screen",
+   "warnings": "Starter guide. Your store can replace it with its own steps in Harbor later.",
+   "steps": [
+     {"title": "Pre-check the device", "detail": "Touch, display, cameras, Face ID / fingerprint, speakers, charging. Note anything not working before you open it."},
+     {"title": "Power off and open", "detail": "Remove the bottom screws if it has them, warm the edges, lift with a suction cup and pry gently."},
+     {"title": "Disconnect the battery first", "detail": "Then the display connectors."},
+     {"title": "Move over any parts the new screen needs", "detail": "Earpiece, sensors, brackets. Compare the old and new screen side by side."},
+     {"title": "Test before sealing", "detail": "Connect the new screen and test touch, brightness and the sensors with the phone open."},
+     {"title": "Seal and post-check", "detail": "New adhesive, screws back in, then repeat the pre-check with the customer."}
+   ]},
+  {"device": "Any phone", "repair": "Battery",
+   "warnings": "Never puncture or bend a swollen battery. Bag it and take it back to the store.",
+   "steps": [
+     {"title": "Pre-check and note battery health", "detail": "Write down the battery health or cycle count if the phone shows it."},
+     {"title": "Open the device", "detail": "Follow the screen or back glass opening steps for this model."},
+     {"title": "Disconnect the battery", "detail": "Before touching anything else."},
+     {"title": "Release the adhesive", "detail": "Use the pull tabs or adhesive remover. Don't pry against the battery."},
+     {"title": "Fit the new battery and test", "detail": "Connect, power on, check charging and the battery reading."},
+     {"title": "Close up and post-check", "detail": "Repeat the pre-check with the customer."}
+   ]},
+  {"device": "Any phone", "repair": "Back glass BG",
+   "warnings": "Glass shards: wear eye protection and keep the customer back while you work.",
+   "steps": [
+     {"title": "Pre-check", "detail": "Cameras, flash, wireless charging, buttons."},
+     {"title": "Remove the back glass", "detail": "Use the laser machine at the store, or heat and careful prying on a housing swap."},
+     {"title": "Clean the frame", "detail": "No glass or adhesive left on the edges or camera ring."},
+     {"title": "Fit the new back glass", "detail": "Line up the camera cutout first, then press down evenly."},
+     {"title": "Post-check", "detail": "Cameras, flash and wireless charging."}
+   ]},
+  {"device": "Any phone", "repair": "Charge port",
+   "steps": [
+     {"title": "Try cleaning first", "detail": "Lint in the port is the most common cause. Check with a light."},
+     {"title": "Pre-check", "detail": "Charging with two known-good cables, data, mic, speaker."},
+     {"title": "Open and disconnect the battery", "detail": ""},
+     {"title": "Swap the port assembly", "detail": "Move over the speaker and antenna parts if the new one needs them."},
+     {"title": "Post-check", "detail": "Charging, data, mic and speaker."}
+   ]}
+]

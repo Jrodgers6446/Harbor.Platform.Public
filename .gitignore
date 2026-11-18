@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+local.properties
+.gradle/
+build/
+.idea/
+.vercel/
+.DS_Store
+HELPER-TOKEN.txt
+*.log
