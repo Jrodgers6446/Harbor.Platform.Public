@@ -1,0 +1,14 @@
+{
+  "name": "harbor-helper",
+  "version": "0.5.3",
+  "description": "Local helper for the Harbor extension: drives the field app on an Android phone over ADB (Pre-call module).",
+  "private": true,
+  "main": "src/server.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node src/server.js",
+    "status": "node src/cli.js status",
+    "dry": "node src/cli.js precall --mode dry",
+    "token": "node src/cli.js token"
+  }
+}

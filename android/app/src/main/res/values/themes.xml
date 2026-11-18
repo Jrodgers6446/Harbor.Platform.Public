@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Harbor" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/harbor_bg</item>
+        <item name="android:statusBarColor">@color/harbor_bg</item>
+        <item name="android:navigationBarColor">@color/harbor_bg</item>
+    </style>
+    <color name="harbor_bg">#09080C</color>
+    <color name="harbor_accent">#8B5CF6</color>
+</resources>
