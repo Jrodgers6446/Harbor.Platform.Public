@@ -165,15 +165,15 @@ function OverwatchReport({ ow, onMap }: { ow: OwProps; onMap: (t: OwTech) => voi
   const go = (d: string) => { const q = new URLSearchParams(params.toString()); q.set('ow', d); router.push(`${path}?${q.toString()}#overwatch`); };
   const dateText = new Date(ow.day + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   return (<div className="ow">
-    <div className="ow-bar"><span className="muted small">Where each tablet went compared with that tech&apos;s RT Daily Sheet route. Click a tech for details.</span>
+    <div className="ow-bar"><span className="muted small">Where each tablet went compared with that tech&apos;s Daily Forms route. Click a tech for details.</span>
       <input type="date" aria-label="Overwatch date" value={ow.day} max={ow.today} onChange={(e) => e.target.value && go(e.target.value)} /></div>
-    {!ow.techs.length && <div className="w-empty">No approved tablets are linked to a tech yet. Set the tech on each tablet (Edit) so Overwatch can match it to their sheet.</div>}
+    {!ow.techs.length && <div className="w-empty">No approved tablets are linked to a tech yet. Set the tech on each tablet (Edit) so Overwatch can match it to their daily forms.</div>}
     <table className="ow-table"><thead><tr><th>Tech</th><th>Date</th><th>Deviations</th><th>Customers reached</th><th>Drive</th><th /></tr></thead><tbody>
       {ow.techs.map((t) => { const hi = t.flags.filter((f) => f.sev === 'high').length, md = t.flags.filter((f) => f.sev === 'med').length, lo = t.flags.length - hi - md; const isOpen = open === t.deviceId; return (<Fragment key={t.deviceId}>
         <tr className={'ow-row' + (isOpen ? ' open' : '')} onClick={() => setOpen(isOpen ? null : t.deviceId)}>
           <td><b>{t.tech}</b>{t.van && <div className="small muted">{t.van}</div>}</td>
           <td className="small">{dateText}</td>
-          <td>{t.noGps ? <span className="chip grey">no tablet location</span> : t.noRoute ? <span className="chip grey">no sheet this day</span> : !t.flags.length ? <span className="chip ok">on route</span>
+          <td>{t.noGps ? <span className="chip grey">no tablet location</span> : t.noRoute ? <span className="chip grey">no forms this day</span> : !t.flags.length ? <span className="chip ok">on route</span>
             : <span className="ow-chips">{hi > 0 && <span className="chip bad">{hi} major</span>}{md > 0 && <span className="chip warn">{md} to check</span>}{lo > 0 && <span className="chip grey">{lo} minor</span>}</span>}
             {t.flags[0] && <div className="small muted ow-first">{t.flags[0].text}</div>}</td>
           <td className="small">{t.noRoute ? '—' : `${t.totals.jobsVisited} / ${t.totals.jobsTotal}`}</td>
@@ -184,7 +184,7 @@ function OverwatchReport({ ow, onMap }: { ow: OwProps; onMap: (t: OwTech) => voi
           <div className="ow-detail-grid">
             <div><h3>Deviations</h3>
               {t.flags.length ? t.flags.map((f, i) => <div className="w-row" key={i}><span className={'chip ' + SEV[f.sev]}>{KIND[f.type]}</span><div className="w-grow small">{f.text}</div>{f.at && <span className="small muted">{tm(f.at)}</span>}</div>)
-                : <div className="w-empty">{t.noGps ? 'The tablet sent no locations this day.' : t.noRoute ? 'No RT Daily Sheet was sent to this tech for this day, so there is no route to compare with.' : 'Nothing off route.'}</div>}
+                : <div className="w-empty">{t.noGps ? 'The tablet sent no locations this day.' : t.noRoute ? 'No Daily Forms was sent to this tech for this day, so there is no route to compare with.' : 'Nothing off route.'}</div>}
               <div className="small muted" style={{ marginTop: 8 }}>{t.points} location points · {mins(t.totals.jobMin)} at customers · {mins(t.totals.otherMin)} stopped elsewhere</div>
               {!t.noGps && <button className="btn sm" style={{ marginTop: 10 }} onClick={() => onMap(t)}>Show this day on the map</button>}
             </div>
@@ -195,7 +195,7 @@ function OverwatchReport({ ow, onMap }: { ow: OwProps; onMap: (t: OwTech) => voi
                     <td className="small">{j.types.join(' + ') || '—'}{j.device && <div className="muted">{j.device}</div>}</td>
                     <td className="small">{v ? tm(v.arrive) : <span className="muted">not visited</span>}</td>
                     <td className="small">{v ? <span className={over ? 'ow-over' : ''}>{mins(v.minutes)}{v.ongoing ? ' (still there)' : ''}</span> : '—'}{v && <div className="muted">expected ~{v.limit} min</div>}</td></tr>); })}
-                {!t.jobs.length && <tr><td colSpan={5} className="muted">No customers on a sheet this day.</td></tr>}
+                {!t.jobs.length && <tr><td colSpan={5} className="muted">No customers on the daily forms this day.</td></tr>}
               </tbody></table>
             </div>
           </div>

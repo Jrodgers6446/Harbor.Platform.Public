@@ -20,7 +20,7 @@ export function Nav({ profile, features, site, canViewAs = false, viewingAs = fa
       <A href="/">Overview</A>
       {manager && <A href="/employees">Employees</A>}
       {manager && <A href="/tablets">Tablets</A>}
-      {manager && features['web.sheets'] !== false && <A href="/sheets">Daily sheets</A>}
+      {manager && features['web.sheets'] !== false && <A href="/sheets">Daily forms</A>}
       {manager && features['web.guides'] !== false && <A href="/guides">Repair guides</A>}
       {manager && <A href="/settings">Store settings</A>}
       <div className="foot">

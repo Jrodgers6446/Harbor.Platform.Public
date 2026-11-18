@@ -1,4 +1,4 @@
-// OVERWATCH: compares where each tablet actually went with the tech's route for the day (the RT Daily Sheet sent to
+// OVERWATCH: compares where each tablet actually went with the tech's route for the day (the Daily Forms sent to
 // their tablet). Stop detection and the deviation rules are the Harbor extension's (modules/routes/tracking.js
 // analyzeDay), so the website and the extension's live map flag the same things.
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -13,7 +13,7 @@ export type OwTech = { deviceId: string; tech: string; van: string | null; date:
 export type OwOptions = { stopMin: number; radiusM: number; overMin: number; extraMin: number; otherStopMin: number; gapMin: number };
 export const OW_DEFAULTS: OwOptions = { stopMin: 3, radiusM: 400, overMin: 30, extraMin: 15, otherStopMin: 20, gapMin: 10 };
 
-// ---- repair type from the sheet's text
+// ---- repair type from the daily forms' text
 const TYPE_ORDER = ['Front screen', 'Inner screen', 'Back glass', 'Battery', 'Charging / power', 'Frame / housing', 'Camera', 'Audio', 'Liquid damage', 'Software', 'Cleaning', 'Other'];
 export function issueLabel(raw: string) {
   const s = String(raw || '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
@@ -127,7 +127,7 @@ export const overwatchRange = (day: string, tz: string): [number, number] => { c
 
 type SheetRow = { tech_id: string; tech_name: string | null; van: string | null; sheet_jobs: { id: string; position: number; customer_name: string | null; address: string | null; window_start: string | null; window_end: string | null; device: string | null; problem: string | null; filed_parts: string | null; outcome: string | null; lat: number | null; lon: number | null }[] };
 
-/** Every tablet with a tech, for one day: where it went vs that tech's sheet. */
+/** Every tablet with a tech, for one day: where it went vs that tech's daily forms. */
 export async function overwatchDay(sb: SupabaseClient, franchiseId: string, day: string, tz: string, opts?: Partial<OwOptions>): Promise<OwTech[]> {
   const start = dayStartMs(day, tz), end = start + 864e5;
   const [{ data: devs }, { data: sheets }] = await Promise.all([

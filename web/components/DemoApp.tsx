@@ -30,9 +30,9 @@ const REPLIES = [
   { c: 'Lena Fischer', t: 'Jordan Lee', msg: '', tag: 'No reply yet', k: 'idle' },
 ];
 
-type View = 'home' | 'routes' | 'dps' | 'precall' | 'techdash' | 'devices' | 'store' | 'tablet';
+type View = 'home' | 'routes' | 'forms' | 'precall' | 'techdash' | 'devices' | 'store' | 'tablet';
 type Sub = 'overview' | 'employees' | 'tablets' | 'sheets' | 'guides';
-const SUBS: [Sub, string][] = [['overview', 'Overview'], ['employees', 'Employees'], ['tablets', 'Tablets'], ['sheets', 'Daily paperwork'], ['guides', 'Repair guides']];
+const SUBS: [Sub, string][] = [['overview', 'Overview'], ['employees', 'Employees'], ['tablets', 'Tablets'], ['sheets', 'Daily Forms'], ['guides', 'Repair guides']];
 
 export function DemoApp({ embed = false }: { embed?: boolean }) {
   const today = new Date().toLocaleDateString('en-CA');
@@ -45,7 +45,7 @@ export function DemoApp({ embed = false }: { embed?: boolean }) {
   const demoOnly = (t = 'This is the demo. Sign in to make changes.') => { setToast(t); setTimeout(() => setToast(''), 2500); };
   const chip = (s: string) => <span className={'chip ' + (s === 'online' ? 'ok' : s === 'idle' ? 'warn' : 'bad')}>{s === 'online' ? 'Online' : s === 'idle' ? 'Quiet' : 'Offline'}</span>;
   const items: NavItem[] = [
-    { id: 'home', label: 'Home', icon: 'home' }, { id: 'routes', label: 'Route Planner', icon: 'routes' }, { id: 'dps', label: 'Daily Paperwork', icon: 'dps' },
+    { id: 'home', label: 'Home', icon: 'home' }, { id: 'routes', label: 'Route Planner', icon: 'routes' }, { id: 'forms', label: 'Daily Forms', icon: 'forms' },
     { id: 'precall', label: 'Pre-call', icon: 'precall', count: '1 new' }, { id: 'techdash', label: 'Tech Dashboard', icon: 'techdash' },
     { id: 'devices', label: 'Devices', icon: 'devices', count: 1, countKind: 'warn' }, { id: 'store', label: 'Example Store', icon: 'store' },
     { id: 'tablet', label: 'Tablet app', icon: 'devices' },
@@ -62,7 +62,7 @@ export function DemoApp({ embed = false }: { embed?: boolean }) {
         <span style={{ display: 'flex', gap: 8 }}><a className="btn sm" href="/">About Harbor</a><a className="btn sm primary" href="/login">Sign in</a></span>
       </div>}
       <Chrome items={items} active={view} onSelect={go} title={title} day={day} today={today} onDay={setDay}
-        bridge={{ installed: true, version: '1.0.0', hcAt: Date.now() - 6 * 60e3, portalAt: Date.now() - 40 * 60e3 }}
+        bridge={{ installed: true, version: '1.0.0', dispatchAt: Date.now() - 6 * 60e3, workordersAt: Date.now() - 40 * 60e3 }}
         generic onSync={() => demoOnly('In the real site this refreshes your scheduling and work-order systems through Harbor Bridge.')} onDownload={() => setPanel('download')}
         footCard={<PhoneCard phone={{ ok: true, title: 'Phone connected', sub: '', via: 'wifi' }} onClick={() => demoOnly('In the real site this opens the phone connection (cable or Wi-Fi) for Harbor Helper.')} />} onHelp={() => setPanel('help')} onSettings={() => setPanel('settings')} version="2.0.0">
 
@@ -80,7 +80,7 @@ export function DemoApp({ embed = false }: { embed?: boolean }) {
               <div className="kpi"><div className="kpi-label">Confirmed</div><div className="kpi-num ok">17 <span className="kpi-of">/ {total}</span></div><div className="kpi-sub">from Pre-call replies</div></div>
               <div className="kpi"><div className="kpi-label">Tablets online</div><div className="kpi-num ok">3 <span className="kpi-of">/ 5</span></div><div className="kpi-sub">1 low battery</div></div>
             </div></section>
-            <section className="widget half"><div className="w-head"><h2>Daily Paperwork</h2><span className="from">sent to tablets</span><a className="open" href="#" onClick={(e) => { e.preventDefault(); go('dps'); }}>Open</a></div>
+            <section className="widget half"><div className="w-head"><h2>Daily Forms</h2><span className="from">sent to tablets</span><a className="open" href="#" onClick={(e) => { e.preventDefault(); go('forms'); }}>Open</a></div>
               {TECHS.map((t) => <div className="w-row" key={t.name}><span className={'dot ' + (t.submitted ? 'ok' : 'warn')} /><div className="w-grow"><b>{t.name}</b><span className="muted small"> · {t.van}</span><div className="w-note">{t.done} of {t.total} customers done · clocked in {t.clock}</div></div>{t.submitted ? <span className="chip ok">Signed</span> : null}</div>)}
             </section>
             <section className="widget"><div className="w-head"><h2>Pre-call</h2><span className="from">via Bridge</span><a className="open" href="#" onClick={(e) => { e.preventDefault(); go('precall'); }}>Open</a></div>
@@ -105,8 +105,8 @@ export function DemoApp({ embed = false }: { embed?: boolean }) {
             {JOBS.map((j, i) => <div className="stop" key={j.c}><span className="n">{i + 1}</span><div className="w-grow"><b>{j.c}</b> <span className="muted small">· {j.w}</span><div className="w-note">{j.a}</div></div></div>)}</section>)}</div>
         </>)}
 
-        {view === 'dps' && (<>
-          <div className="mod-head"><div><h1>Daily Paperwork</h1><div className="muted">{rel} · each tech’s daily paperwork form, on their tablet</div></div><button className="btn primary" onClick={() => demoOnly()}>Send to tablets</button></div>
+        {view === 'forms' && (<>
+          <div className="mod-head"><div><h1>Daily Forms</h1><div className="muted">{rel} · each tech’s daily paperwork form, on their tablet</div></div><button className="btn primary" onClick={() => demoOnly()}>Send to tablets</button></div>
           <section className="widget" style={{ marginBottom: 16 }}><div className="w-head"><h2>Today’s jobs</h2><span className="from">{TECHS[0].name} · {TECHS[0].van} · clocked in {TECHS[0].clock}</span></div>
             <table><thead><tr><th>#</th><th>Customer</th><th>Window</th><th>Job</th><th>Part</th><th>Outcome</th></tr></thead><tbody>
               {DEMO_JOBS.map((j, i) => <tr key={j.c}><td className="muted">{i + 1}</td><td><b>{j.c}</b><div className="small muted">{j.a}</div></td><td className="small">{j.w}</td><td className="small">{j.d}</td><td className="small">{j.part}<div className="muted">{j.st}</div></td><td><span className={'chip ' + (j.out === 'Completed' ? 'ok' : 'warn')}>{j.out}</span></td></tr>)}
@@ -162,7 +162,7 @@ export function DemoApp({ embed = false }: { embed?: boolean }) {
           </>)}
 
           {view === 'store' && sub === 'sheets' && (<>
-            <h1>Daily paperwork</h1><div className="muted">The paperwork techs filled in on their tablets (job sheets, vehicle checks, customer sign-offs and more), signed off by a manager at the end of the day.</div>
+            <h1>Daily Forms</h1><div className="muted">The paperwork techs filled in on their tablets (job sheets, vehicle checks, customer sign-offs and more), signed off by a manager at the end of the day.</div>
             <h2>Casey Brooks · Van 4 · today</h2>
             <PaperworkDemo />
           </>)}

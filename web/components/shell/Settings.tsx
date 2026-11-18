@@ -15,14 +15,14 @@ import type { ShellUser } from './SiteShell';
 
 export const MODULES = [
   { id: 'routes', label: 'Route Planner', desc: 'Each tech’s stops for the day, in order, with a Maps route.' },
-  { id: 'dps', label: 'RT Daily Sheet', desc: 'The sheets sent to the tablets and what the techs filled in.' },
+  { id: 'forms', label: 'Daily Forms', desc: 'The forms sent to the tablets and what the techs filled in.' },
   { id: 'precall', label: 'Pre-call', desc: 'Confirmation texts and replies, through the phone on this PC.' },
   { id: 'techdash', label: 'Tech Dashboard', desc: 'Jobs done per tech and the week’s work orders.' },
   { id: 'devices', label: 'Devices', desc: 'The tech tablets: approve, link to techs, battery and location.' },
 ];
 export const HOME_WIDGETS = [
-  { id: 'kpis', title: 'Numbers', from: 'Home', desc: 'Customers, done, sheets signed, tablets online, employees' },
-  { id: 'dps', title: 'RT Daily Sheet', from: 'RT Daily Sheet', desc: 'Each tech’s sheet and progress' },
+  { id: 'kpis', title: 'Numbers', from: 'Home', desc: 'Customers, done, forms signed, tablets online, employees' },
+  { id: 'forms', title: 'Daily Forms', from: 'Daily Forms', desc: 'Each tech’s forms and progress' },
   { id: 'devices', title: 'Devices', from: 'Devices', desc: 'Tablets, last report and battery' },
   { id: 'precall', title: 'Pre-call', from: 'Pre-call', desc: 'The next customers to confirm' },
   { id: 'techdash', title: 'Tech Dashboard', from: 'Tech Dashboard', desc: 'Jobs done per tech' },
@@ -72,7 +72,7 @@ export function useSettingsTabs(p: { user: ShellUser; day: string; canViewAs: bo
   const [techs, setTechs] = useState<{ id: string; name: string }[] | null>(null);
   useEffect(() => {
     if (!manager) return;
-    supabaseBrowser().from('bridge_snapshots').select('payload').eq('source', 'honeycomb').eq('day', p.day).maybeSingle()
+    supabaseBrowser().from('bridge_snapshots').select('payload').eq('source', 'dispatch').eq('day', p.day).maybeSingle()
       .then(({ data }) => setTechs(((data?.payload as any)?.techs || []).map((t: any) => ({ id: t.id, name: t.name }))));
   }, [p.day, manager]);
   const saved = async (key: string, value: unknown) => { const e = await store.save(key, value); setSMsg(e ? { t: e, k: 'bad' } : { t: 'Saved for everyone at this store.', k: 'ok' }); };
@@ -131,8 +131,8 @@ export function useSettingsTabs(p: { user: ShellUser; day: string; canViewAs: bo
       <p className="muted small" style={{ margin: 0 }}>“Open in Maps” starts each tech’s route from this address. Drive-time and tracking settings stay in the extension’s Route Planner.</p>
       <Msg m={sMsg} />
     </> },
-    { id: 'dps', label: 'RT Daily Sheet', body: <>
-      <h3>RT Daily Sheet</h3><p className="muted small" style={{ margin: 0 }}>Van for each tech, shared by every manager here. Techs come from the dispatch data for the day picked at the top.</p>
+    { id: 'forms', label: 'Daily Forms', body: <>
+      <h3>Daily Forms</h3><p className="muted small" style={{ margin: 0 }}>Van for each tech, shared by every manager here. Techs come from the dispatch data for the day picked at the top.</p>
       {techs === null ? <div className="w-empty">Loading…</div> : techs.length ? techs.map((t) => (
         <div className="van-row" key={t.id}><b>{t.name}</b><input placeholder="Van" aria-label={`Van for ${t.name}`} value={vans[t.id] || ''} onChange={(e) => setVans({ ...vans, [t.id]: e.target.value })} onBlur={() => saved('vans', vans)} /></div>))
         : <div className="w-empty">No techs for this day yet. Press the refresh button at the top, or pick a day that has data.</div>}

@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 type Job = { id: string; position: number; customer_name: string | null; address: string | null; window_start: string | null; window_end: string | null; device: string | null; problem: string | null; filed_parts: string | null; part_sku: string | null; part_status: string | null; outcome: string | null; reason: string | null; lat: number | null; lon: number | null };
 type Sheet = { id: string; tech_id: string; tech_name: string | null; van: string | null; submitted_at: string | null; clock_in_at: string | null; sheet_jobs: Job[] };
 
-const NAMES: Record<string, string> = { routes: 'Route Planner', dps: 'RT Daily Sheet', precall: 'Pre-call', techdash: 'Tech Dashboard', devices: 'Devices' };
+const NAMES: Record<string, string> = { routes: 'Route Planner', forms: 'Daily Forms', precall: 'Pre-call', techdash: 'Tech Dashboard', devices: 'Devices' };
 
 /** The Harbor extension's modules, on the website. */
 export default async function Module({ params, searchParams }: { params: { id: string }; searchParams: { day?: string; view?: string; ow?: string } }) {
@@ -40,19 +40,19 @@ export default async function Module({ params, searchParams }: { params: { id: s
   if (params.id === 'precall' || params.id === 'techdash') {
     const b = await bridgeDay(sb, profile!.franchise_id, day);
     if (params.id === 'precall') {
-      if (!b.hc) return <NeedsBridge id="precall" dayText={dayText} />;
-      const name = new Map(b.hc.techs.map((t) => [t.id, t.name]));
-      const jobs: PcJob[] = b.hc.jobs.filter((j) => !CANCELLED.test(j.status)).sort((a, c) => String(a.ws).localeCompare(String(c.ws)))
+      if (!b.dispatch) return <NeedsBridge id="precall" dayText={dayText} />;
+      const name = new Map(b.dispatch.techs.map((t) => [t.id, t.name]));
+      const jobs: PcJob[] = b.dispatch.jobs.filter((j) => !CANCELLED.test(j.status)).sort((a, c) => String(a.ws).localeCompare(String(c.ws)))
         .map((j) => ({ sjn: j.sjn, name: j.name || '', status: j.status, type: j.type, carrier: j.carrier, ws: j.ws, we: j.we, address: j.address, tech: j.techs.map((t) => name.get(t) || t).join(', '), done: DONE.test(j.status) }));
       const { data: res } = await sb.from('precall_results').select('sjn,status,detail,message,sent_at,dry,reply').eq('franchise_id', profile!.franchise_id).eq('day', day);
       const sheet: Record<string, { device: string | null; filed: string | null }> = {};
       sheets.forEach((s) => s.sheet_jobs.forEach((j) => { if (j.customer_name) sheet[j.customer_name.trim().toLowerCase()] = { device: j.device, filed: j.filed_parts || j.problem }; }));
       const rules = setting('precall_rules').rules;
-      return <PrecallModule day={day} dayText={dayText} tz={tz} hcAt={b.hcAt} jobs={jobs} results={(res || []) as PcResult[]} sheet={sheet} settings={setting('precall')} rules={Array.isArray(rules) ? rules : null} />;
+      return <PrecallModule day={day} dayText={dayText} tz={tz} dispatchAt={b.dispatchAt} jobs={jobs} results={(res || []) as PcResult[]} sheet={sheet} settings={setting('precall')} rules={Array.isArray(rules) ? rules : null} />;
     }
     return techDash(sb, profile!.franchise_id, day, searchParams.view, tz, goal, vans);
   }
-  const empty = <div className="widget w-empty">No sheets for {dayText}. In the Harbor extension, RT Daily Sheet → <b>Send to tablets</b> sends them here and to the techs&apos; tablets.</div>;
+  const empty = <div className="widget w-empty">No daily forms for {dayText}. In the Harbor extension, Daily Forms → <b>Send to tablets</b> sends them here and to the techs&apos; tablets.</div>;
 
   if (params.id === 'routes') {
     return (<ExtensionModule page="modules/routes/planner.html" day={day} title="Route Planner">
@@ -71,17 +71,17 @@ export default async function Module({ params, searchParams }: { params: { id: s
     </ExtensionModule>);
   }
 
-  // dps
+  // forms
   return (<>
-    <div className="mod-head"><div><h1>RT Daily Sheet</h1><div className="muted">{dayText} · what each tech has on their tablet, filled in as they go</div></div><Link className="btn" href="/sheets">All sheets</Link></div>
+    <div className="mod-head"><div><h1>Daily Forms</h1><div className="muted">{dayText} · what each tech has on their tablet, filled in as they go</div></div><Link className="btn" href="/sheets">All forms</Link></div>
     {!sheets.length ? empty : sheets.map((s) => (
       <section className="widget" key={s.id} style={{ marginBottom: 16 }}>
         <div className="w-head"><h2>{s.tech_name || 'Tech'}</h2><span className="from">{s.van || vans[s.tech_id] || 'no van'}{s.clock_in_at ? ' · clocked in ' + t(s.clock_in_at) : ''}</span>
-          <span className="open">{s.submitted_at ? <span className="chip ok">Signed</span> : <Link href={`/sheets/${s.id}`}>Open sheet</Link>}</span></div>
+          <span className="open">{s.submitted_at ? <span className="chip ok">Signed</span> : <Link href={`/sheets/${s.id}`}>Open forms</Link>}</span></div>
         <table><thead><tr><th>#</th><th>Customer</th><th>Window</th><th>Device / problem</th><th>Part</th><th>Outcome</th></tr></thead><tbody>
           {s.sheet_jobs.map((j, i) => (<tr key={j.id}><td className="muted">{i + 1}</td><td><b>{j.customer_name || '—'}</b><div className="small muted">{j.address}</div></td><td className="small">{win(j)}</td>
             <td className="small">{j.device || '—'}<div className="muted">{j.problem || j.filed_parts}</div></td>
-            <td className="small">{j.part_sku || <span className="muted">—</span>}{j.part_status && <div className="muted">{j.part_status.toUpperCase()}</div>}</td>
+            <td className="small">{j.part_sku || <span className="muted">—</span>}{j.part_status && <div className="muted">{j.part_status === 'returned' ? 'Returned' : 'Installed'}</div>}</td>
             <td>{j.outcome ? <span className={'chip ' + (j.outcome === 'completed' ? 'ok' : 'warn')}>{j.outcome}</span> : <span className="chip grey">open</span>}{j.reason && <div className="small muted">{j.reason}</div>}</td></tr>))}
         </tbody></table>
       </section>))}
@@ -89,7 +89,7 @@ export default async function Module({ params, searchParams }: { params: { id: s
 }
 
 
-/** Tech Dashboard: day / week / month like the extension, from Bridge's saved dispatch-system days and portal work orders. */
+/** Tech Dashboard: day / week / month like the extension, from Bridge's saved dispatch-system days and work orders system work orders. */
 async function techDash(sb: any, franchiseId: string, picked: string, viewParam: string | undefined, tz: string, goal: number, vans: Record<string, string>) {
   const L = makeLogic(tz);
   const today = L.today();
@@ -103,29 +103,29 @@ async function techDash(sb: any, franchiseId: string, picked: string, viewParam:
   const end = to < today ? to : today;
   const { data } = await sb.from('bridge_snapshots').select('source,day,payload,captured_at').eq('franchise_id', franchiseId).gte('day', shiftDate(from, -2)).lte('day', shiftDate(end, 8));
   const snaps = (data || []) as { source: string; day: string; payload: any; captured_at: string }[];
-  const hcs = snaps.filter((r) => r.source === 'honeycomb' && r.day >= from && r.day <= end).sort((a, b) => a.day.localeCompare(b.day));
-  const portals = snaps.filter((r) => r.source === 'portal').sort((a, b) => a.captured_at.localeCompare(b.captured_at));
-  const wos = mergeWos(portals.map((r) => r.payload?.wos));
-  const hcDay = hcs.find((r) => r.day === day);
+  const dispatchDays = snaps.filter((r) => r.source === 'dispatch' && r.day >= from && r.day <= end).sort((a, b) => a.day.localeCompare(b.day));
+  const woSnaps = snaps.filter((r) => r.source === 'workorders').sort((a, b) => a.captured_at.localeCompare(b.captured_at));
+  const wos = mergeWos(woSnaps.map((r) => r.payload?.wos));
+  const dispatchDay = dispatchDays.find((r) => r.day === day);
   const latest = (l: typeof snaps) => (l.length ? l.reduce((a, b) => (a.captured_at > b.captured_at ? a : b)).captured_at : null);
   const rangeDays = Math.round((Date.parse(end + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z')) / 864e5) + 1;
   return <TechDashView view={view} day={day} label={label} goal={goal} tz={tz} vans={vans} clamped={picked > today}
-    hcAt={view === 'day' ? hcDay?.captured_at || null : latest(hcs)} portalAt={latest(portals)} hasPortal={portals.length > 0}
-    savedDays={hcs.length} rangeDays={Math.max(1, rangeDays)}
-    board={view === 'day' && hcDay ? L.buildBoard(hcDay.payload, wos, day) : null}
-    report={view !== 'day' ? L.buildReport(hcs.map((r) => ({ date: r.day, hc: r.payload })), wos, view === 'week' ? 'day' : 'week') : null} />;
+    dispatchAt={view === 'day' ? dispatchDay?.captured_at || null : latest(dispatchDays)} workordersAt={latest(woSnaps)} hasWorkorders={woSnaps.length > 0}
+    savedDays={dispatchDays.length} rangeDays={Math.max(1, rangeDays)}
+    board={view === 'day' && dispatchDay ? L.buildBoard(dispatchDay.payload, wos, day) : null}
+    report={view !== 'day' ? L.buildReport(dispatchDays.map((r) => ({ date: r.day, dispatch: r.payload })), wos, view === 'week' ? 'day' : 'week') : null} />;
 }
 
 function NeedsBridge({ id, dayText }: { id: string; dayText: string }) {
   const what = id === 'precall'
     ? 'Pre-call shows who to confirm for the day, from the dispatch system.'
-    : 'Tech Dashboard shows each tech’s jobs from the dispatch system and the week’s work orders from the portal.';
+    : 'Tech Dashboard shows each tech’s jobs from the dispatch system and the week’s work orders from the work orders system.';
   return (<>
     <div className="mod-head"><div><h1>{NAMES[id]}</h1><div className="muted">{dayText} · live data through Harbor Bridge</div></div></div>
     <section className="widget bridge-card">
       <div className="w-head"><h2>Nothing from Bridge for this day yet</h2></div>
       <p style={{ marginTop: 0 }}>{what}</p>
-      <ol className="steps"><li>Install <b>Harbor Bridge</b> in Chrome on this computer (the card at the bottom of the sidebar turns green).</li><li>Open the dispatch system and the portal from the Bridge icon and sign in once.</li><li>Press the sync button at the top right (it reads the dispatch system, then the portal).</li></ol>
+      <ol className="steps"><li>Install <b>Harbor Bridge</b> in Chrome on this computer (the card at the bottom of the sidebar turns green).</li><li>Open the dispatch system and the work orders system from the Bridge icon and sign in once.</li><li>Press the sync button at the top right (it reads the dispatch system, then the work orders system).</li></ol>
     </section>
   </>);
 }

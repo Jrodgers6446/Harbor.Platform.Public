@@ -156,7 +156,7 @@ fun Logo(size: Int) {
 @Composable
 private fun Shell(model: AppModel, askPermissions: () -> Unit) {
     val size = screenSize()
-    val tabs = listOf(Triple(Tab.SHEET, "Sheet", "▤"), Triple(Tab.ROUTE, "Route", "➜"), Triple(Tab.ASSIST, "Assist", "🔧"))
+    val tabs = listOf(Triple(Tab.SHEET, "Forms", "▤"), Triple(Tab.ROUTE, "Route", "➜"), Triple(Tab.ASSIST, "Assist", "🔧"))
     val isOn = { t: Tab -> model.tab == t || (t == Tab.SHEET && model.tab == Tab.END_OF_DAY) }
     val content = @Composable { m: Modifier ->
         Box(m) {

@@ -4,7 +4,7 @@ import { saveSiteContent } from '@/lib/actions';
 import { WELCOME_DEFAULT, type Welcome } from '@/lib/siteContent';
 import { Icon } from './shell/icons';
 
-const ICONS = ['routes', 'dps', 'precall', 'techdash', 'devices', 'store', 'home', 'bridge', 'overwatch'];
+const ICONS = ['routes', 'forms', 'precall', 'techdash', 'devices', 'store', 'home', 'bridge', 'overwatch'];
 
 /** Overwatch > Front page: edit every piece of text on the public front page. */
 export function FrontPageEditor({ initial, custom, previewUrl }: { initial: Welcome; custom: boolean; previewUrl: string }) {
@@ -33,7 +33,7 @@ export function FrontPageEditor({ initial, custom, previewUrl }: { initial: Welc
       </section>
 
       <section className="widget" style={{ display: 'grid', gap: 12 }}>
-        <div className="w-head"><h2>Features</h2><span className="open"><button className="btn sm" disabled={c.features.length >= 12} onClick={() => setC({ ...c, features: [...c.features, { icon: 'dps', title: '', text: '' }] })}>+ Add feature</button></span></div>
+        <div className="w-head"><h2>Features</h2><span className="open"><button className="btn sm" disabled={c.features.length >= 12} onClick={() => setC({ ...c, features: [...c.features, { icon: 'forms', title: '', text: '' }] })}>+ Add feature</button></span></div>
         {T("featuresTitle", "Heading")}{T("featuresLead", "Intro", 2)}
         {c.features.map((f, i) => (
           <div key={i} className="panel-box" style={{ gap: 8 }}>

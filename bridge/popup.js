@@ -3,8 +3,8 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const when = (t) => (t ? 'last read ' + new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'not read yet');
 const dot = (t) => (t ? (Date.now() - t > 2 * 3600e3 ? 'dot old' : 'dot ok') : 'dot');
 const KIND = { schedule: 'Schedule', workorders: 'Work orders' };
-// Keep in sync with optional_host_permissions in manifest.json.
-const MATCH = { honeycomb: 'https://honeycomb.fieldservices.asurion.com/*', portal: 'https://portal.ubreakifix.net/*' };
+// Same hosts as DISPATCH and WORKORDERS in background.js; keep in sync with optional_host_permissions in manifest.json.
+const MATCH = { dispatch: 'https://dispatch.example.com/*', workorders: 'https://workorders.example.com/*' };
 // Your Harbor website (same as the first entry in SITES in background.js).
 const SITE_URL = 'https://harbor.example.com/';
 

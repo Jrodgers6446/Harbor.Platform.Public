@@ -17,21 +17,21 @@ export default async function SheetPage({ params }: { params: { id: string } }) 
   return (
     <>
       <div className="row no-print" style={{ justifyContent: 'space-between', marginBottom: 14 }}>
-        <div><Link href="/sheets">← Daily sheets</Link></div>
+        <div><Link href="/sheets">← Daily forms</Link></div>
         <div style={{ flex: 'none', display: 'flex', gap: 8 }}>
           <PrintButton />
           {s.submitted_at && <ActionButton className="btn" sure="Click again to reopen" run={() => reopenSheet(s.id)}>Reopen for edits</ActionButton>}
         </div>
       </div>
       <div className="sheet-print">
-        <h3>Remote Tech Daily Form</h3>
-        <div>Remote Tech: <b>{s.tech_name}</b> &nbsp; Date: <b>{day(s.sheet_date)}</b></div>
+        <h3>Daily Form</h3>
+        <div>Tech: <b>{s.tech_name}</b> &nbsp; Date: <b>{day(s.sheet_date)}</b></div>
         <div>Van: {s.van || '____'} &nbsp; Clock in time: {clock(s.clock_in_at)} &nbsp; BOD: {s.bod_done ? 'Done' : '____'}</div>
         <div style={{ marginTop: 10, textDecoration: 'underline' }}>Customer List</div>
         {jobs.map((j) => (<div className="cust" key={j.id}>
           <div>Name: <b>{j.customer_name}</b> &nbsp; Device: {j.device} {j.filed_parts && <span>· {j.filed_parts}</span>} <span style={{ color: '#666' }}>{win(j)}</span></div>
-          <div>Part Sku: {j.part_sku || '______'} &nbsp; BG Sku: {j.bg_sku || '______'} &nbsp; Battery Sku: {j.battery_sku || '______'} &nbsp; RW: {j.rw || '____'}</div>
-          <div>Part Status: <b>{j.part_status ? j.part_status.toUpperCase() : 'USED / RTI'}</b> &nbsp; Outcome: <b>{j.outcome || '—'}</b> {j.reason && <span>· Reason: {j.reason}</span>}</div>
+          <div>Part SKU: {j.part_sku || '______'} &nbsp; Back glass SKU: {j.bg_sku || '______'} &nbsp; Battery SKU: {j.battery_sku || '______'} &nbsp; Reference: {j.rw || '____'}</div>
+          <div>Part Status: <b>{j.part_status === 'returned' ? 'Returned' : j.part_status === 'used' ? 'Installed' : 'Installed / Returned'}</b> &nbsp; Outcome: <b>{j.outcome || '—'}</b> {j.reason && <span>· Reason: {j.reason}</span>}</div>
         </div>))}
         <div style={{ marginTop: 12 }}>Clock out time: {clock(s.clock_out_at)} &nbsp; End Mileage: {s.end_mileage ?? '______'} &nbsp; EOD: {s.eod_done ? 'Done' : '____'}</div>
         <div style={{ marginTop: 12 }}><b>Manager signature:</b> {s.manager_name || '________________'} {s.submitted_at && <span style={{ color: '#666' }}>· {new Date(s.submitted_at).toLocaleString()}</span>}</div>

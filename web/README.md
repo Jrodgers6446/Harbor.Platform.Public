@@ -6,7 +6,7 @@ There are two levels of access:
 
 | Level | Who | What they get |
 |---|---|---|
-| Standard | managers of one store | overview, employees, tablets, daily sheets, repair guides, store settings, Pre-call, tech dashboard |
+| Standard | managers of one store | overview, employees, tablets, daily forms, repair guides, store settings, Pre-call, tech dashboard |
 | Overwatch | the platform admin | everything above for any store, plus franchises, releases and the front page editor |
 
 Techs can sign in too. They only get a download button for the tablet app. `/get` shows the current tablet build without

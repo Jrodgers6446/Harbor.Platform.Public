@@ -15,6 +15,13 @@ Pre-call module. The Harbor website reaches it through Harbor Bridge. It only li
 `setup.bat` also installs `uiautomator2` with pip if Python is available (faster screen reads). Without Python the
 helper falls back to plain adb.
 
+## Field app package
+
+The helper drives a field app on the phone. Its Android package name is read from the environment variable
+`HARBOR_FIELD_APP_PACKAGE` and defaults to `com.example.fieldapp`, so set it to your app's real package name (for
+example with `setx HARBOR_FIELD_APP_PACKAGE com.yourcompany.fieldapp`, then restart the helper from a new window). The screen selectors
+in `src/fieldapp.js` match that app's visible text; adjust them to your app.
+
 ## Day to day
 
 It starts by itself when you log in. `restart-helper.bat` restarts it, `stop.bat` stops it, `start-visible.bat` runs

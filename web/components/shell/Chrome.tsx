@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { Logo } from '../Logo';
-import { Chevron, DownloadIcon, GearIcon, HelpIcon, HoneycombIcon, Icon, SyncIcon } from './icons';
+import { Chevron, DownloadIcon, GearIcon, HelpIcon, DispatchIcon, Icon, SyncIcon } from './icons';
 import { addDays, dayLabel, type BridgeState } from './util';
 
 export type NavItem = { id: string; label: string; icon: string; href?: string; count?: string | number | null; countKind?: 'warn' };
@@ -44,7 +44,7 @@ export function Chrome(p: Props) {
     : !p.bridge.installed ? 'Refresh (needs the Harbor Bridge extension)'
     : !conns.length ? 'Refresh (add your systems in Harbor Bridge first)'
     : 'Refresh from ' + conns.map((c) => `${c.name} (${clock(c.at)})`).join(', ');
-  const hcIcon = !p.generic && conns.some((c) => c.id === 'honeycomb');
+  const dispatchIcon = !p.generic && conns.some((c) => c.id === 'dispatch');
   const rel = p.day === p.today ? 'Today · ' : p.day === addDays(p.today, 1) ? 'Tomorrow · ' : p.day === addDays(p.today, -1) ? 'Yesterday · ' : '';
 
   return (
@@ -67,7 +67,7 @@ export function Chrome(p: Props) {
           </div>
           <div className="title">{p.title}</div>
           <div className="top-right">
-            <button className={'icon-btn sync' + (p.bridge.busy ? ' spin' : '')} title={syncTitle} aria-label={syncTitle} onClick={p.onSync}>{hcIcon ? <HoneycombIcon /> : <SyncIcon />}<span className={'sync-dot ' + syncDot} /></button>
+            <button className={'icon-btn sync' + (p.bridge.busy ? ' spin' : '')} title={syncTitle} aria-label={syncTitle} onClick={p.onSync}>{dispatchIcon ? <DispatchIcon /> : <SyncIcon />}<span className={'sync-dot ' + syncDot} /></button>
             <button className="icon-btn" aria-label="Help and FAQ" title="How to use Harbor" onClick={p.onHelp}><HelpIcon /></button>
             <button className="icon-btn" aria-label="Downloads: tablet app or Harbor Bridge" title="Download the tablet app or Harbor Bridge" onClick={p.onDownload}><DownloadIcon /></button>
             <button className="icon-btn accent" aria-label="Settings" title="Settings" onClick={p.onSettings}><GearIcon /></button>

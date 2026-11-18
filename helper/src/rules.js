@@ -85,20 +85,29 @@
   const fill = (tpl, v) => String(tpl || "").replace(/\{(\w+)\}/g, (m, k) => (k in v && v[k] != null && v[k] !== "" ? String(v[k]) : m))
     .replace(/\s*\(\s*\)/g, "").replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").trim();
 
+  // Put your real carrier names in these patterns. `key` is the claim line setting (lineA, lineB) that goes with the
+  // carrier, `name` is what replies say. Checked in order; the first match wins.
+  const CARRIER_PATTERNS = [
+    { key: "lineB", name: "Carrier B", pattern: /carrier b/i },
+    { key: "lineA", name: "Carrier A", pattern: /carrier a/i },
+  ];
+  const carrierOf = (text) => CARRIER_PATTERNS.find((c) => c.pattern.test(text || "")) || null;
+
   /** Fill a reply. Returns null if it still has a {placeholder} that couldn't be filled (e.g. unknown carrier). */
   function render(tpl, ctx) {
-    const carrier = /verizon/i.test(ctx.carrier || "") ? "Verizon" : /at&?t|\batt/i.test(ctx.carrier || "") ? "AT&T" : null;
+    const c = carrierOf(ctx.carrier);
+    const carrier = c ? c.name : null;
     const lines = ctx.claimLines || {};
     const vars = {
       first: ctx.first, last: ctx.last, date: ctx.date, window: ctx.window, tech: ctx.tech, carrier,
-      claimLine: carrier === "Verizon" ? lines.verizon : carrier === "AT&T" ? lines.att : null,
+      claimLine: c ? lines[c.key] : null,
       filed: Array.isArray(ctx.filedKinds) && ctx.filedKinds.length ? joinWords(ctx.filedKinds.filter((k) => k !== "rw").map((k) => LABEL[k] || k)) : null,
     };
     const out = fill(tpl, vars);
     return /\{\w+\}/.test(out) ? null : out;
   }
 
-  const api = { DEFAULT_RULES, KINDS, LABEL, kindsIn, evaluate, render, fill, children, mentions };
+  const api = { DEFAULT_RULES, CARRIER_PATTERNS, carrierOf, KINDS, LABEL, kindsIn, evaluate, render, fill, children, mentions };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.HarborRules = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

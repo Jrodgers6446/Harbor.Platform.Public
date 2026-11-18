@@ -14,9 +14,17 @@ Before loading or zipping the extension, edit these to match your own setup:
   them with your own domains.
 - `popup.js`: `SITE_URL`, the page the "Open the Harbor website" button opens.
 
-The two built-in connectors (a dispatch board and a repair portal) point at fixed third-party hosts, listed in
-`background.js`, `popup.js` and `optional_host_permissions` in `manifest.json`. Change or remove them if you use
-different systems.
+The two built-in connectors are a "dispatch" system (the day's jobs and techs) and a "workorders" system (finished
+work orders). Their hosts are placeholders: `https://dispatch.example.com` and `https://workorders.example.com`.
+Replace them with the real hosts of your own systems in all three places:
+
+- `background.js`: `DISPATCH` and `WORKORDERS` (defined once at the top).
+- `manifest.json`: `optional_host_permissions`.
+- `popup.js`: `MATCH`.
+
+The readers also depend on how those systems behave, so adjust to your system: `DISPATCH_BOARD_PATH` and
+`WORKORDERS_PAGE_PATH` in `background.js`, `GQL_PATH` and the operation names in `dispatch-inject.js`, and
+`LIST_PATH` plus the field names in `workorders.js`. Change or remove the connectors if you use different systems.
 
 ## Install
 

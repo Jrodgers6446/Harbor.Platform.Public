@@ -102,9 +102,9 @@ fun SheetScreen(model: AppModel) {
             sheet == null && !model.loaded -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Loading…", style = Small) }
             sheet == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("No sheet for today yet", style = Title)
+                    Text("No daily forms for today yet", style = Title)
                     Text(if (model.techId == null) "This login isn't linked to a tech yet. Your manager approves the tablet in Harbor → Devices and picks your name; then refresh."
-                        else "Your manager sends it from Harbor (RT Daily Sheet → Send to tablets). Refresh once they have.", style = Small)
+                        else "Your manager sends it from Harbor (Daily Forms → Send to tablets). Refresh once they have.", style = Small)
                     Secondary("Refresh") { model.refresh() }
                 }
             }
@@ -172,7 +172,7 @@ private fun CustomerList(model: AppModel, modifier: Modifier, onPick: () -> Unit
                 }
             }
         }
-        if (model.sheet?.submitted == true) Chip("Sheet submitted ✓", C.ok, C.okBg)
+        if (model.sheet?.submitted == true) Chip("Forms submitted ✓", C.ok, C.okBg)
         else Secondary("End of day →", Modifier.fillMaxWidth()) { model.tab = Tab.END_OF_DAY }
     }
 }
@@ -209,17 +209,17 @@ private fun CustomerCard(model: AppModel, job: Job, locked: Boolean, modifier: M
         val edit = { change: (Job) -> Job -> if (!locked) model.editJob(job.id, change) }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Field("Part SKU", job.partSku, { v -> edit { it.copy(partSku = v) } }, Modifier.weight(1f), number = true)
-            Field("BG SKU", job.bgSku, { v -> edit { it.copy(bgSku = v) } }, Modifier.weight(1f), number = true)
+            Field("Back glass SKU", job.bgSku, { v -> edit { it.copy(bgSku = v) } }, Modifier.weight(1f), number = true)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Field("Battery SKU", job.batterySku, { v -> edit { it.copy(batterySku = v) } }, Modifier.weight(1f), number = true)
-            Field("RW", job.rw, { v -> edit { it.copy(rw = v) } }, Modifier.weight(1f))
+            Field("Reference", job.rw, { v -> edit { it.copy(rw = v) } }, Modifier.weight(1f))
         }
         val status = @Composable {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Part status", style = Small)
-                Segmented(listOf("used" to "Used", "rti" to "RTI"), job.partStatus, { v -> edit { it.copy(partStatus = v) } },
-                    mapOf("rti" to (C.warnBg to C.warn)))
+                Segmented(listOf("used" to "Installed", "returned" to "Returned"), job.partStatus, { v -> edit { it.copy(partStatus = v) } },
+                    mapOf("returned" to (C.warnBg to C.warn)))
             }
         }
         val outcome = @Composable {
@@ -289,7 +289,7 @@ fun EndOfDayScreen(model: AppModel) {
             SignaturePad(strokes, sigMod)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                 Secondary("Clear") { strokes.clear() }
-                Primary(if (model.busy) "Submitting…" else "Submit sheet",
+                Primary(if (model.busy) "Submitting…" else "Submit forms",
                     enabled = !model.busy && manager.isNotBlank() && strokes.isNotEmpty() && sheet.clockOut != null) {
                     model.submit(manager, toSvgPath(strokes)) { strokes.clear() }
                 }
@@ -349,7 +349,7 @@ private fun SignaturePad(strokes: MutableList<List<Offset>>, modifier: Modifier)
     }
 }
 
-/** Signature as SVG path data, e.g. "M10 20 L12 22 ...", so Harbor can draw it on the printable sheet. */
+/** Signature as SVG path data, e.g. "M10 20 L12 22 ...", so Harbor can draw it on the printable forms. */
 private fun toSvgPath(strokes: List<List<Offset>>): String = strokes.joinToString(" ") { pts ->
     "M" + pts.joinToString(" L") { "${it.x.toInt()} ${it.y.toInt()}" }
 }

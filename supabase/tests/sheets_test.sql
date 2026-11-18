@@ -2,9 +2,9 @@
 -- needs devices_test.sql users/franchises (run after it)
 reset role;
 update profiles set tech_id = 'T22' where user_id = '22222222-2222-2222-2222-222222222222';
-insert into auth.users values ('44444444-4444-4444-4444-444444444444','tech2@x.com');
+insert into auth.users values ('44444444-4444-4444-4444-444444444444','tech2@a.example');
 insert into profiles (user_id, franchise_id, role, display_name, email, tech_id) values
- ('44444444-4444-4444-4444-444444444444','aaaaaaaa-0000-0000-0000-000000000001','tech','Tech2','tech2@x.com','T44');
+ ('44444444-4444-4444-4444-444444444444','aaaaaaaa-0000-0000-0000-000000000001','tech','Tech2','tech2@a.example','T44');
 set role authenticated;
 \echo tech pushes a sheet (should fail)
 set request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';

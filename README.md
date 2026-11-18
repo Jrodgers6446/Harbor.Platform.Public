@@ -1,12 +1,12 @@
 # Harbor platform
 
 Harbor is a field-service platform: a manager website, a tablet app for the techs, a browser extension that reads the
-systems a company already uses, and a small program that sends confirmation texts from a phone. This is a public copy
-of the project with the owner's project ids, hostnames, keys and sample data removed.
+scheduling and work-order systems a company already uses, and a small program that sends confirmation texts from a
+phone. This is a public copy of the project with the owner's project ids, hostnames, keys and sample data removed.
 
 It covers the day-to-day of a repair team:
 
-- **Daily sheets.** Techs fill in their sheet on the tablet. The manager signs and can print it.
+- **Daily forms.** Techs fill in their forms on the tablet. The manager signs and can print them.
 - **Route.** The tablet orders the day's stops and shows the tradeoff between fastest and on time.
 - **Pre-call.** Managers text customers ahead of the visit and track replies.
 - **Tech dashboard.** Success rate against a goal, per-tech results, and why jobs failed.
@@ -20,7 +20,7 @@ It covers the day-to-day of a repair team:
 | `supabase/` | Postgres schema as ordered migrations, plus SQL tests. Every write goes through a security definer function. |
 | `web/` | Next.js 14 site: front page, a demo with made-up data, the signed-in app, and the Overwatch admin area. |
 | `android/` | Kotlin / Jetpack Compose tablet app. |
-| `bridge/` | Chrome MV3 extension that reads the scheduling and work-order sites and uploads a daily snapshot. Read-only. |
+| `bridge/` | Chrome MV3 extension that reads a "dispatch" system and a "workorders" system and uploads a daily snapshot. Read-only. |
 | `helper/` | Node program for a Windows PC that drives a phone over adb to send Pre-call texts. |
 | `scripts/` | `test-schema.sh`, which runs the migrations and tests against a scratch Postgres. |
 | `.github/workflows/` | Builds the APK, the Bridge zip and the Helper zip. |
@@ -67,13 +67,19 @@ the checks passing.
 - Sign-up is limited to one email domain. It is set in `signup_domain_ok()` in the signups migration and in
   `NEXT_PUBLIC_SIGNUP_DOMAIN` for the web form. Both default to `example.com`; change both.
 - For CI builds, set repo variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` so the APK points at your project.
-- The two built-in Bridge connectors point at specific third-party sites, and `helper/src/fieldapp.js` drives a specific
-  third-party Android app. Swap them for the systems you use.
-- The database check constraint on `bridge_snapshots.source` allows `honeycomb` and `portal`. If you add connectors,
+- The two Bridge connectors are a "dispatch" system and a "workorders" system. Their hosts ship as
+  `https://dispatch.example.com` and `https://workorders.example.com`; set your real hosts in `bridge/background.js`,
+  `bridge/manifest.json` and `bridge/popup.js`. The request paths and field names the readers use are marked "adjust
+  to your system" in [bridge/README.md](bridge/README.md).
+- `helper/src/fieldapp.js` drives an Android field app on the phone. Set `HARBOR_FIELD_APP_PACKAGE` to its package
+  name (default `com.example.fieldapp`) and adjust the selectors to that app.
+- Pre-call picks a claim line by carrier. The carrier name patterns ship as placeholders (`carrier a`, `carrier b`);
+  put your real carrier names in `CARRIER_PATTERNS` in `web/lib/precallRules.ts` and `helper/src/rules.js`.
+- The database check constraint on `bridge_snapshots.source` allows `dispatch` and `workorders`. If you add connectors,
   add them there and in `web/lib/bridge.ts`.
 - Bridge, the website and the Helper are meant for one company's own staff. Don't point Pre-call at real customers
   until you have tested with a dry run.
 
 ## License
 
-Not chosen yet. See [LICENSE](LICENSE).
+View-only, all rights reserved. See [LICENSE](LICENSE). You can read the code; copying, modifying, redistributing or running it needs written permission.

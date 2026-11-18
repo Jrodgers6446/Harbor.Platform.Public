@@ -26,7 +26,7 @@ export default async function Settings() {
         <div className="small muted" style={{ marginTop: 10 }}>Overwatch turns these on and off per store.</div>
       </div>
       <h2>Harbor extension</h2>
-      <div className="card small muted">Managers also use the Harbor Chrome extension (Route Planner, RT Daily Sheet, Pre-call, Devices). Sign in to its Devices settings with the same email; it sends you a code too.</div>
+      <div className="card small muted">Managers also use the Harbor Chrome extension (Route Planner, Daily Forms, Pre-call, Devices). Sign in to its Devices settings with the same email; it sends you a code too.</div>
     </>
   );
 }

@@ -11,14 +11,14 @@ import { DEFAULT_RULES, kindsIn, type Rule } from '@/lib/precallRules';
 export type PcJob = { sjn: string; name: string; status: string; type: string; carrier: string; ws: string | null; we: string | null; address: string; tech: string; done: boolean };
 export type PcResult = { sjn: string; status: string | null; detail: string | null; message: string | null; sent_at: string | null; dry: any; reply: any };
 export type PcSheetInfo = { device: string | null; filed: string | null };
-export type PcSettings = { template?: string; iphoneOn?: boolean; iphoneText?: string; att?: string; verizon?: string; watchOn?: boolean };
+export type PcSettings = { template?: string; iphoneOn?: boolean; iphoneText?: string; lineA?: string; lineB?: string; watchOn?: boolean };
 
 export const DEFAULT_TEMPLATE = 'Hi {first}, this is Example Repair Co confirming your repair appointment for {date} ({window}). Your technician will text you here with an ETA. Please reply with any questions!';
 export const DEFAULT_IPHONE = 'Since your device is an iPhone, please turn off Find My iPhone and Stolen Device Protection before your appointment. ' +
   'Stolen Device Protection: Settings > Face ID & Passcode > Stolen Device Protection > turn it off (if it asks you to wait an hour, start early). ' +
   'Find My iPhone: Settings > tap your name > Find My > Find My iPhone > turn it off (needs your Apple ID password).';
-export const DEFAULT_LINE_ATT = '1-800-555-0100 or att.example.com/support';
-export const DEFAULT_LINE_VZ = '1-800-555-0101 or the carrier support app';
+export const DEFAULT_LINE_A = '1-800-555-0100 or support.example.com';
+export const DEFAULT_LINE_B = '1-800-555-0101 or the carrier support app';
 const WATCH_MIN = 30, EVERY_MIN = 3;
 const FINISHED = ['done', 'failed', 'cancelled'];
 
@@ -48,15 +48,15 @@ const WATCH_KEY = 'harbor:precall:watch';
 const readWatch = (): Watch => { try { return JSON.parse(localStorage.getItem(WATCH_KEY) || 'null'); } catch { return null; } };
 const writeWatch = (w: Watch) => { try { localStorage.setItem(WATCH_KEY, JSON.stringify(w)); } catch { /* private window */ } };
 
-export function PrecallModule(p: { day: string; dayText: string; tz: string; hcAt: string | null; jobs: PcJob[]; results: PcResult[]; sheet: Record<string, PcSheetInfo>; settings: PcSettings; rules: Rule[] | null }) {
+export function PrecallModule(p: { day: string; dayText: string; tz: string; dispatchAt: string | null; jobs: PcJob[]; results: PcResult[]; sheet: Record<string, PcSheetInfo>; settings: PcSettings; rules: Rule[] | null }) {
   const { day, tz } = p;
   const sb = useMemo(() => supabaseBrowser(), []);
   const [results, setResults] = useState<Record<string, PcResult>>(() => Object.fromEntries(p.results.map((r) => [r.sjn, r])));
   const [tpl, setTpl] = useState(p.settings.template || DEFAULT_TEMPLATE);
   const [iphoneOn, setIphoneOn] = useState(p.settings.iphoneOn !== false);
   const [iphoneText, setIphoneText] = useState(p.settings.iphoneText || DEFAULT_IPHONE);
-  const [att, setAtt] = useState(p.settings.att || DEFAULT_LINE_ATT);
-  const [vz, setVz] = useState(p.settings.verizon || DEFAULT_LINE_VZ);
+  const [lineA, setLineA] = useState(p.settings.lineA || DEFAULT_LINE_A);
+  const [lineB, setLineB] = useState(p.settings.lineB || DEFAULT_LINE_B);
   const [watchOn, setWatchOn] = useState(p.settings.watchOn !== false);
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [pill, setPill] = useState<Pill | null>(null);
@@ -91,7 +91,7 @@ export function PrecallModule(p: { day: string; dayText: string; tz: string; hcA
 
   // saving
   const saveSettings = async (patch: Partial<PcSettings>) => {
-    const next = { template: tpl, iphoneOn, iphoneText, att, verizon: vz, watchOn, ...patch };
+    const next = { template: tpl, iphoneOn, iphoneText, lineA, lineB, watchOn, ...patch };
     const { error } = await sb.rpc('set_store_setting', { p_key: 'precall', p_value: next });
     if (error) setMsg({ t: 'Couldn’t save the settings: ' + error.message, k: 'bad' });
   };
@@ -173,7 +173,7 @@ export function PrecallModule(p: { day: string; dayText: string; tz: string; hcA
       const zip = zipsFor(list);
       const body = {
         mode: mode === 'preview' ? 'replies-dry' : 'replies',
-        replyConfig: { rules: rules.map((r) => ({ ...r, reply: asciiize(r.reply || '') })), claimLines: { att: asciiize(att), verizon: asciiize(vz) } },
+        replyConfig: { rules: rules.map((r) => ({ ...r, reply: asciiize(r.reply || '') })), claimLines: { lineA: asciiize(lineA), lineB: asciiize(lineB) } },
         jobs: list.map((j) => { const v = varsFor(j); return { id: j.sjn, customer: j.name, date: dateLabel, ...zip(j),
           ctx: { first: v.first, date: v.date, window: v.window, carrier: j.carrier, filedKinds: filedKindsOf(j, info(j)), precallPrefix: String(results[j.sjn]?.message || '').slice(0, 30) } }; }),
       };
@@ -250,7 +250,7 @@ export function PrecallModule(p: { day: string; dayText: string; tz: string; hcA
   const autoRules = rules.filter((r) => r.action === 'reply' || r.action === 'both').length, flagRules = rules.filter((r) => r.action === 'flag' || r.action === 'both').length;
 
   return (<>
-    <div className="mod-head"><div><h1>Pre-call</h1><div className="muted">{p.dayText} · {p.jobs.length} customers{p.hcAt ? ' · Dispatch ' + new Date(p.hcAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: tz }) : ''}</div></div>
+    <div className="mod-head"><div><h1>Pre-call</h1><div className="muted">{p.dayText} · {p.jobs.length} customers{p.dispatchAt ? ' · Dispatch ' + new Date(p.dispatchAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: tz }) : ''}</div></div>
       <span className={'chip ' + (!pill ? 'grey' : pill.ok ? 'ok' : 'bad')} title="Harbor Helper drives the phone on this PC">{pill ? pill.text : 'checking helper…'}</span></div>
 
     <div className="kpi-row" style={{ marginBottom: 16 }}>
@@ -266,10 +266,10 @@ export function PrecallModule(p: { day: string; dayText: string; tz: string; hcA
         <textarea className="pc-tpl" rows={4} value={tpl} disabled={busy} onChange={(e) => setTpl(e.target.value)} onBlur={() => saveSettings({})} aria-label="Pre-call message" />
         {bad.length > 0 && <div className="msg bad">Remove these characters (the phone can&apos;t type them): {bad.map((c) => (/\S/.test(c) ? c : 'U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0'))).join(' ')}</div>}
         {first && <div className="small pc-preview"><b>Preview:</b> {fillTpl(asciiize(tpl), varsFor(first))}</div>}
-        <label className="toggle-row"><span>Add iPhone steps for iPhone customers<div className="small muted">Device comes from the RT Daily Sheet for this day.</div></span><input type="checkbox" checked={iphoneOn} disabled={busy} onChange={(e) => { setIphoneOn(e.target.checked); saveSettings({ iphoneOn: e.target.checked }); }} /></label>
+        <label className="toggle-row"><span>Add iPhone steps for iPhone customers<div className="small muted">Device comes from the Daily Forms for this day.</div></span><input type="checkbox" checked={iphoneOn} disabled={busy} onChange={(e) => { setIphoneOn(e.target.checked); saveSettings({ iphoneOn: e.target.checked }); }} /></label>
         {iphoneOn && <textarea className="pc-tpl" rows={3} value={iphoneText} disabled={busy} onChange={(e) => setIphoneText(e.target.value)} onBlur={() => saveSettings({})} aria-label="iPhone steps" />}
         {iphoneOn && appleOne && <div className="small muted">iPhone customers (e.g. {appleOne.name}) also get the steps above.</div>}
-        {iphoneOn && unknownDev > 0 && <div className="small muted">{unknownDev} selected customer{unknownDev === 1 ? ' has' : 's have'} no device info yet, so they won&apos;t get the iPhone steps. Send the RT Daily Sheet for this day first.</div>}
+        {iphoneOn && unknownDev > 0 && <div className="small muted">{unknownDev} selected customer{unknownDev === 1 ? ' has' : 's have'} no device info yet, so they won&apos;t get the iPhone steps. Send the Daily Forms for this day first.</div>}
       </section>
 
       <section className="widget">

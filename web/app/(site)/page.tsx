@@ -26,7 +26,7 @@ export default async function Home({ searchParams }: { searchParams: { day?: str
   if (!manager) {
     return (<>
       <div className="home-head"><div><h1>{rel} at a glance</h1><p className="muted">{profile!.franchises?.name}</p></div></div>
-      <div className="widget">Your daily sheet, route and repair assist live in the Harbor tablet app. Managers use this site.</div>
+      <div className="widget">Your daily forms, route and repair assist live in the Harbor tablet app. Managers use this site.</div>
       <DownloadApp always />
     </>);
   }
@@ -54,11 +54,11 @@ export default async function Home({ searchParams }: { searchParams: { day?: str
   const low = devs.filter((d) => d.battery != null && d.battery < 20).length;
   const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
-  const hcJobs = (br.hc?.jobs || []).filter((j) => !CANCELLED.test(j.status)).sort((a, b) => String(a.ws).localeCompare(String(b.ws)));
-  const techName = new Map((br.hc?.techs || []).map((t) => [t.id, t.name]));
-  const techRows = (br.hc?.techs || []).map((t) => { const m = hcJobs.filter((j) => j.techs.includes(t.id)); return { id: t.id, name: t.name, total: m.length, done: m.filter((j) => DONE.test(j.status)).length }; }).filter((t) => t.total);
+  const dispatchJobs = (br.dispatch?.jobs || []).filter((j) => !CANCELLED.test(j.status)).sort((a, b) => String(a.ws).localeCompare(String(b.ws)));
+  const techName = new Map((br.dispatch?.techs || []).map((t) => [t.id, t.name]));
+  const techRows = (br.dispatch?.techs || []).map((t) => { const m = dispatchJobs.filter((j) => j.techs.includes(t.id)); return { id: t.id, name: t.name, total: m.length, done: m.filter((j) => DONE.test(j.status)).length }; }).filter((t) => t.total);
   const hm = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz }) : '');
-  const needsBridge = (what: string) => <div className="w-empty">{what} fills in from the dispatch system and the repair portal through <b>Harbor Bridge</b>. Press the sync button at the top to read this day.</div>;
+  const needsBridge = (what: string) => <div className="w-empty">{what} fills in from the dispatch system and the work orders system through <b>Harbor Bridge</b>. Press the sync button at the top to read this day.</div>;
 
   // techs who are off their route today
   const owOff = ow.filter((t) => t.flags.some((f) => f.sev !== 'low'));
@@ -84,17 +84,17 @@ export default async function Home({ searchParams }: { searchParams: { day?: str
     ...owWidget,
     { id: 'kpis', title: 'Numbers', size: 'full', node: (
       <div className="kpi-row">
-        <Link className="kpi" href={'/m/dps' + q('')}><div className="kpi-label">Customers</div><div className={'kpi-num' + (jobs.length || hcJobs.length ? '' : ' muted')}>{jobs.length || hcJobs.length || 'None yet'}</div><div className="kpi-sub">{sh.length ? `${sh.length} tech${sh.length === 1 ? '' : 's'} on sheets` : hcJobs.length ? `in dispatch · ${techRows.length} techs` : 'no sheets yet'}</div></Link>
+        <Link className="kpi" href={'/m/forms' + q('')}><div className="kpi-label">Customers</div><div className={'kpi-num' + (jobs.length || dispatchJobs.length ? '' : ' muted')}>{jobs.length || dispatchJobs.length || 'None yet'}</div><div className="kpi-sub">{sh.length ? `${sh.length} tech${sh.length === 1 ? '' : 's'} with forms` : dispatchJobs.length ? `in dispatch · ${techRows.length} techs` : 'no sheets yet'}</div></Link>
         <div className="kpi"><div className="kpi-label">Done</div><div className="kpi-num">{done} <span className="kpi-of">/ {jobs.length}</span></div><div className="pbar"><i style={{ width: pct(done, jobs.length) + '%' }} /></div></div>
-        <Link className="kpi" href="/sheets"><div className="kpi-label">Sheets signed</div><div className={'kpi-num' + (sh.length && sh.every((s) => s.submitted_at) ? ' ok' : '')}>{sh.filter((s) => s.submitted_at).length} <span className="kpi-of">/ {sh.length}</span></div></Link>
+        <Link className="kpi" href="/sheets"><div className="kpi-label">Forms signed</div><div className={'kpi-num' + (sh.length && sh.every((s) => s.submitted_at) ? ' ok' : '')}>{sh.filter((s) => s.submitted_at).length} <span className="kpi-of">/ {sh.length}</span></div></Link>
         <Link className="kpi" href="/m/devices"><div className="kpi-label">Tablets online</div><div className={'kpi-num' + (online ? ' ok' : '')}>{online} <span className="kpi-of">/ {devs.length}</span></div><div className="kpi-sub">{low ? `${low} low battery` : 'Batteries fine'}</div></Link>
         <Link className="kpi" href="/employees"><div className="kpi-label">Employees</div><div className="kpi-num">{people ?? 0}</div></Link>
       </div>) },
-    { id: 'dps', title: 'Daily Sheet', from: 'sent to tablets', open: '/m/dps' + q(''), size: 'half', node: sh.length ? sh.map((s) => {
+    { id: 'forms', title: 'Daily Forms', from: 'sent to tablets', open: '/m/forms' + q(''), size: 'half', node: sh.length ? sh.map((s) => {
       const j = s.sheet_jobs || []; const d = j.filter((x) => x.outcome).length;
       return (<div className="w-row" key={s.id}><span className={'dot ' + (s.submitted_at ? 'ok' : s.clock_in_at ? 'warn' : '')} /><div className="w-grow"><b>{s.tech_name || 'Tech'}</b>{s.van && <span className="muted small"> · {s.van}</span>}<div className="w-note">{d} of {j.length} customers done{s.clock_in_at ? ' · clocked in ' + new Date(s.clock_in_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZone: tz }) : ''}</div></div>
         {s.submitted_at ? <span className="chip ok">Signed</span> : <Link className="small" href={`/sheets/${s.id}`}>View</Link>}</div>);
-    }) : <div className="w-empty">No sheets for this day yet. In the Harbor extension, Daily Sheet → <b>Send to tablets</b> puts them here.</div> },
+    }) : <div className="w-empty">No daily forms for this day yet. In the Harbor extension, Daily Forms → <b>Send to tablets</b> puts them here.</div> },
     { id: 'devices', title: 'Devices', from: 'tablets', open: '/m/devices', node: devs.length ? devs.map((d) => { const s = stateOf(d); return (
       <div className="w-row" key={d.id}><span className={'dot ' + (s.key === 'online' ? 'ok' : s.key === 'idle' ? 'warn' : 'bad')} /><div className="w-grow"><b>{d.tech_name || d.name}</b><div className="w-note">{s.label} · {ago(d.last_seen_at)}</div></div><span className={'small ' + (d.battery != null && d.battery < 20 ? 'warn' : 'muted')}>{d.battery ?? '—'}{d.battery != null && '%'}</span></div>); })
       : <div className="w-empty">No approved tablets yet.</div> },
@@ -104,7 +104,7 @@ export default async function Home({ searchParams }: { searchParams: { day?: str
   // Pre-call widgets, built from the store's saved Pre-call results
   function precallWidgets(): Widget[] {
     const res = (pcRes || []) as { sjn: string; customer: string | null; status: string | null; reply: any }[];
-    const live = hcJobs.filter((j) => !DONE.test(j.status));
+    const live = dispatchJobs.filter((j) => !DONE.test(j.status));
     const sent = res.filter((r) => r.status === 'sent');
     const replied = sent.filter((r) => r.reply && !['no-reply', 'skipped', 'error'].includes(r.reply.status));
     const needs = res.filter((r) => r.reply && (r.reply.status === 'needs-you' || (r.reply.status === 'replied' && r.reply.flags?.length && !r.reply.mismatch)));
@@ -136,9 +136,9 @@ export default async function Home({ searchParams }: { searchParams: { day?: str
           {r.reply.customerText && <div className="w-quote">“{String(r.reply.customerText).slice(0, 220)}”</div>}
           {r.reply.reply && <div className="muted small">We answered: {String(r.reply.reply).slice(0, 120)}</div>}</div>)) : <div className="w-empty">No replies waiting on you.</div> },
       { id: 'precall-activity', title: 'Reply activity', from: 'Pre-call', open, size: 'half', off: true, node: activity },
-      { id: 'precall', title: 'Call list', from: 'via Bridge', open, off: true, node: hcJobs.length ? (<>
-        {hcJobs.slice(0, 6).map((j) => <div className="w-row" key={j.sjn}><div className="w-grow"><b>{j.name || 'Customer'}</b><div className="w-note">{hm(j.ws)}{j.we ? '–' + hm(j.we) : ''} · {j.techs.map((t) => techName.get(t) || t).join(', ') || 'not assigned'}</div></div><span className={'chip ' + (res.find((r) => r.sjn === j.sjn)?.status === 'sent' ? 'ok' : 'grey')}>{res.find((r) => r.sjn === j.sjn)?.status === 'sent' ? 'texted' : 'to call'}</span></div>)}
-        {hcJobs.length > 6 && <div className="w-note" style={{ paddingTop: 8 }}>+ {hcJobs.length - 6} more</div>}</>) : needsBridge('Pre-call') },
+      { id: 'precall', title: 'Call list', from: 'via Bridge', open, off: true, node: dispatchJobs.length ? (<>
+        {dispatchJobs.slice(0, 6).map((j) => <div className="w-row" key={j.sjn}><div className="w-grow"><b>{j.name || 'Customer'}</b><div className="w-note">{hm(j.ws)}{j.we ? '–' + hm(j.we) : ''} · {j.techs.map((t) => techName.get(t) || t).join(', ') || 'not assigned'}</div></div><span className={'chip ' + (res.find((r) => r.sjn === j.sjn)?.status === 'sent' ? 'ok' : 'grey')}>{res.find((r) => r.sjn === j.sjn)?.status === 'sent' ? 'texted' : 'to call'}</span></div>)}
+        {dispatchJobs.length > 6 && <div className="w-note" style={{ paddingTop: 8 }}>+ {dispatchJobs.length - 6} more</div>}</>) : needsBridge('Pre-call') },
     ];
   }
 
@@ -146,19 +146,19 @@ export default async function Home({ searchParams }: { searchParams: { day?: str
   function techWidgets(): Widget[] {
     const goal: number = ((st || [])[0]?.value as any)?.goal || 75;
     const all = (snaps || []) as { source: string; day: string; payload: any; captured_at: string }[];
-    const portals = all.filter((r) => r.source === 'portal').sort((a, b) => a.captured_at.localeCompare(b.captured_at));
-    const wos = mergeWos(portals.map((r) => r.payload?.wos));
-    const fetchedAt = portals.length ? portals[portals.length - 1].captured_at : null;
-    const hcOf = (d: string) => all.find((r) => r.source === 'honeycomb' && r.day === d)?.payload || null;
+    const woSnaps = all.filter((r) => r.source === 'workorders').sort((a, b) => a.captured_at.localeCompare(b.captured_at));
+    const wos = mergeWos(woSnaps.map((r) => r.payload?.wos));
+    const fetchedAt = woSnaps.length ? woSnaps[woSnaps.length - 1].captured_at : null;
+    const dispatchOf = (d: string) => all.find((r) => r.source === 'dispatch' && r.day === d)?.payload || null;
     const lbl = tdDay === L.today() ? 'Today' : new Date(tdDay + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const open = `/m/techdash?day=${tdDay}`;
-    const hc0 = hcOf(tdDay);
+    const dispatch0 = dispatchOf(tdDay);
     const none = <div className="w-empty">No jobs saved for {lbl === 'Today' ? 'today' : lbl}. Press the sync button at the top with that day picked.</div>;
-    const asOf = <span className="muted small">{fetchedAt ? 'outcomes as of ' + new Date(fetchedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: zone }) : 'no portal data yet: press the sync button'}</span>;
-    const b = hc0 ? L.buildBoard(hc0, wos, tdDay) : null;
+    const asOf = <span className="muted small">{fetchedAt ? 'outcomes as of ' + new Date(fetchedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: zone }) : 'no work order data yet: press the sync button'}</span>;
+    const b = dispatch0 ? L.buildBoard(dispatch0, wos, tdDay) : null;
     const rc = (x: number | null) => (x == null ? 'idle' : x * 100 >= goal ? 'ok' : 'bad');
     const week: { d: string; t: ReturnType<typeof L.buildBoard>['totals'] | null }[] = [];
-    for (let d = mondayOf(tdDay); d <= tdDay; d = shiftDate(d, 1)) { const h = hcOf(d); week.push({ d, t: h ? L.buildBoard(h, wos, d).totals : null }); }
+    for (let d = mondayOf(tdDay); d <= tdDay; d = shiftDate(d, 1)) { const h = dispatchOf(d); week.push({ d, t: h ? L.buildBoard(h, wos, d).totals : null }); }
     const wd = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
     const failed = b ? b.techs.flatMap((t) => t.rows.filter((r) => r.result === 'failed').map((r) => ({ ...r, tech: t.name }))) : [];
     const c = b?.totals.counts;

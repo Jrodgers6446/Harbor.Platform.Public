@@ -134,9 +134,9 @@ fun RouteScreen(model: AppModel) {
             val p = plan
             if (p == null || p.stops.isEmpty()) {
                 Text(when {
-                    jobs.isEmpty() -> "No customers on today's sheet."
+                    jobs.isEmpty() -> "No customers on today's daily forms."
                     jobs.all { it.done } -> "All customers are done. Nice work."
-                    else -> "Finding the customers on the map… If this stays, the addresses on the sheet couldn't be found."
+                    else -> "Finding the customers on the map… If this stays, the addresses on the forms couldn't be found."
                 }, style = Small)
                 return@Column
             }

@@ -1,5 +1,6 @@
 // Reply rules for Pre-call: read what the customer wrote after the precall and decide the one automatic reply.
 // Pure functions (no phone access) so they can be tested on their own.
+const Rules = require("./rules");
 
 const KINDS = {
   bg: /back (glass|cover|panel|of (the|my) phone)|rear glass|back (is|was) (cracked|broken|shattered)|cracked back/,
@@ -37,7 +38,7 @@ const fill = (tpl, v) => String(tpl || "").replace(/\{(\w+)\}/g, (m, k) => (k in
 
 /**
  * Decide what to do with the customer's new messages.
- * ctx: { first, date, window, carrier, filedKinds: ["screen","bg",...] | null, templates: { thanks, mismatch }, claimLines: { att, verizon } }
+ * ctx: { first, date, window, carrier, filedKinds: ["screen","bg",...] | null, templates: { thanks, mismatch }, claimLines: { lineA, lineB } }
  * returns { action: "reply" | "flag" | "none", reply, flags: [..], customerKinds, filedKinds, mismatch }
  */
 function decide(customerText, ctx) {
@@ -54,8 +55,9 @@ function decide(customerText, ctx) {
   const hard = flags.filter((f) => ["stop", "cancel", "reschedule", "money", "upset"].includes(f));
   if (hard.length) return { action: "flag", reply: null, flags: hard, customerKinds, filedKinds: filed, mismatch };
 
-  const carrier = /verizon/i.test(ctx.carrier || "") ? "Verizon" : /at&?t|att/i.test(ctx.carrier || "") ? "AT&T" : null;
-  const vars = { first: ctx.first, date: ctx.date, window: ctx.window, carrier, claimLine: carrier === "Verizon" ? ctx.claimLines.verizon : carrier === "AT&T" ? ctx.claimLines.att : null,
+  const c = Rules.carrierOf(ctx.carrier);
+  const carrier = c ? c.name : null;
+  const vars = { first: ctx.first, date: ctx.date, window: ctx.window, carrier, claimLine: c ? ctx.claimLines[c.key] : null,
     filed: filed && filed.length ? joinWords(filed.map((k) => LABEL[k] || k)) : null };
 
   if (mismatch && carrier) {
@@ -66,7 +68,6 @@ function decide(customerText, ctx) {
 }
 
 // The editable logic tree (Harbor Settings > Pre-call > Reply logic). Same engine as the web tester.
-const Rules = require("./rules");
 function decideTree(customerText, ctx, rules) {
   const ev = Rules.evaluate(rules, customerText, ctx.filedKinds);
   const r = ev.rule;

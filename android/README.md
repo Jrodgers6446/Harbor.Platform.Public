@@ -6,8 +6,8 @@ Screens:
 
 | Tab | What it does |
 |---|---|
-| Sheet | Today's sheet: customer list, plus a card per customer with part, back glass and battery SKUs, RW, used/RTI, outcome and reason. Clock in and BOD in the header. |
-| End of day | Clock out, end mileage, EOD, manager name and finger signature, then submit (locks the sheet). |
+| Forms | Today's daily forms: customer list, plus a card per customer with part, back glass and battery SKUs, a reference, installed/returned, outcome and reason. Clock in and BOD in the header. |
+| End of day | Clock out, end mileage, EOD, manager name and finger signature, then submit (locks the forms). |
 | Route | Customers left on a map, ordered fastest (least driving) or on time (every stop inside its window), with ETAs. Navigate opens Google Maps or Waze. |
 | Assist | Repair steps for the current customer's device, with a checklist and notes. Starter guides ship in `app/src/main/assets/guides.json`; guides in the `repair_guides` table replace them. |
 
@@ -34,5 +34,5 @@ Release builds use the debug key unless these environment variables are set: `HA
 ## Setting up a tech
 
 1. Create the tech's login in Supabase (Authentication, Add user) and a `profiles` row with their franchise, `role = 'tech'` and a `tech_id`.
-2. Push their sheet with `upsert_daily_sheet`.
+2. Push their daily forms with `upsert_daily_sheet`.
 3. On the tablet: sign in, pair it (QR or code), and set location permission to "Allow all the time".

@@ -1,10 +1,10 @@
--- Sheets: the tablet's daily sheet, its jobs (for the route map) and repair guides. Needs devices.
+-- Sheets: the tablet's daily forms, its jobs (for the route map) and repair guides. Needs devices.
 --
--- * A signed-in manager pushes tomorrow's sheet with upsert_daily_sheet(): one sheet per tech per day, with the
+-- * A signed-in manager pushes tomorrow's daily forms with upsert_daily_sheet(): one sheet row per tech per day, with the
 --   customers, windows, addresses, devices and filed parts the dispatch system already knows.
--- * The tech's tablet reads its own sheet (matched by profiles.tech_id) and fills in what the paper sheet asks for
+-- * The tech's tablet reads its own forms (matched by profiles.tech_id) and fills in what they ask for
 --   through save_sheet() / save_job(), then submit_sheet() with the manager's signature.
--- * Techs never write the tables directly; RLS only lets them read their own sheet.
+-- * Techs never write the tables directly; RLS only lets them read their own forms.
 --
 -- Tablet app contract (in addition to devices)
 --   read today:   GET  /rest/v1/sheets?sheet_date=eq.2026-11-14&select=*,sheet_jobs(*)
@@ -59,12 +59,12 @@ create table if not exists sheet_jobs (
   filed_parts   text,
   problem       text,
   carrier       text,
-  -- what the tech fills in (paper sheet columns)
+  -- what the tech fills in (daily form fields)
   part_sku      text,
   bg_sku        text,
   battery_sku   text,
   rw            text,
-  part_status   text check (part_status in ('used', 'rti')),
+  part_status   text check (part_status in ('used', 'returned')),
   outcome       text check (outcome in ('completed', 'rescheduled', 'unrepaired')),
   reason        text,
   done_at       timestamptz,

@@ -2,7 +2,8 @@
 // only means editing SELECTORS / the functions below.
 const A = require("./adb");
 
-const PKG = "com.asurion.fieldapp";
+// Android package of the field app on the phone. Set HARBOR_FIELD_APP_PACKAGE to your app's package name.
+const PKG = process.env.HARBOR_FIELD_APP_PACKAGE || "com.example.fieldapp";
 const MONTHS = "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec";
 
 // Mapped on a Samsung S-series phone; selectors match the app's visible text / content descriptions.

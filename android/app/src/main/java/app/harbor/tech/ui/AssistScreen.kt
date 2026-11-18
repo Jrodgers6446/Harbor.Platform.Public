@@ -50,7 +50,7 @@ private val CHECKLIST = listOf(
     "Note any existing damage with the customer before opening",
     "Battery disconnected before working on the board or display",
     "Post-check: everything from the pre-check works the same or better",
-    "Clean the device, show the customer, get the RFP smiley",
+    "Clean the device, show the customer, get the final check done",
 )
 
 @Composable
@@ -179,10 +179,10 @@ private fun Parts(job: app.harbor.tech.Job?) {
     Card(Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("PARTS FOR THIS JOB", style = Label)
-            if (job == null) { Text("Pick a customer on the sheet first.", style = Small); return@Column }
+            if (job == null) { Text("Pick a customer on the Forms tab first.", style = Small); return@Column }
             Text("Filed: ${job.filedParts ?: "—"}", style = Body)
-            Text("Part SKU: ${job.partSku.ifBlank { "—" }}   BG SKU: ${job.bgSku.ifBlank { "—" }}   Battery SKU: ${job.batterySku.ifBlank { "—" }}", style = Body)
-            Text("SKUs come from the DPS sheet. Fill them in on the Sheet tab.", style = Small)
+            Text("Part SKU: ${job.partSku.ifBlank { "—" }}   Back glass SKU: ${job.bgSku.ifBlank { "—" }}   Battery SKU: ${job.batterySku.ifBlank { "—" }}", style = Body)
+            Text("SKUs come from the daily forms. Fill them in on the Forms tab.", style = Small)
         }
     }
 }

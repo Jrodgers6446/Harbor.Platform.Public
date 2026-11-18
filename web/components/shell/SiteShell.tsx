@@ -24,7 +24,7 @@ type Props = {
 };
 
 const STORE_PATHS = ['/store', '/employees', '/tablets', '/sheets', '/guides', '/settings'];
-const ICON: Record<string, string> = { routes: 'routes', dps: 'dps', precall: 'precall', techdash: 'techdash', devices: 'devices' };
+const ICON: Record<string, string> = { routes: 'routes', forms: 'forms', precall: 'precall', techdash: 'techdash', devices: 'devices' };
 
 export function SiteShell(p: Props) {
   const path = usePathname();
@@ -52,13 +52,13 @@ export function SiteShell(p: Props) {
   if (p.site === 'overwatch' && !p.viewingAs) items.push({ id: 'overwatch', label: 'Overwatch', icon: 'overwatch', href: '/overwatch' });
 
   const active = path === '/' ? 'home' : path.startsWith('/m/') ? path.split('/')[2] : path.startsWith('/overwatch') ? 'overwatch' : STORE_PATHS.some((s) => path === s || path.startsWith(s + '/')) ? 'store' : 'home';
-  const withDay = items.map((i) => ({ ...i, href: i.href && (i.id === 'home' || ['routes', 'dps', 'precall', 'techdash'].includes(i.id)) && params.get('day') ? `${i.href}?day=${day}` : i.href }));
+  const withDay = items.map((i) => ({ ...i, href: i.href && (i.id === 'home' || ['routes', 'forms', 'precall', 'techdash'].includes(i.id)) && params.get('day') ? `${i.href}?day=${day}` : i.href }));
 
   const storeTabs = [
     { href: '/store', label: 'Overview', show: true },
     { href: '/employees', label: 'Employees', show: manager },
     { href: '/tablets', label: 'Tablets', show: manager },
-    { href: '/sheets', label: 'Daily sheets', show: manager && f('web.sheets') },
+    { href: '/sheets', label: 'Daily forms', show: manager && f('web.sheets') },
     { href: '/guides', label: 'Repair guides', show: manager && f('web.guides') },
     { href: '/settings', label: 'Store settings', show: manager },
   ].filter((t) => t.show);

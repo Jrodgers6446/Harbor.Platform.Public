@@ -11,7 +11,7 @@ select count(*) as wrong from tablet_invite_info('nope');
 select pair_with_invite((select token from tok));
 select create_tablet_invite();
 \echo a brand-new login (no store yet) pairs with it: active device, tech profile in that store
-reset role; insert into auth.users (id, email) values ('13131313-1313-1313-1313-131313131313','new.tab@x.com') on conflict do nothing;
+reset role; insert into auth.users (id, email) values ('13131313-1313-1313-1313-131313131313','new.tab@a.example') on conflict do nothing;
 delete from profiles where user_id = '13131313-1313-1313-1313-131313131313';
 set role authenticated; set request.jwt.claim.sub = '13131313-1313-1313-1313-131313131313';
 select store from pair_with_invite((select token from tok), 'Tablet A', 'SM-X230', '0.1.15');

@@ -1,13 +1,15 @@
-// Harbor Bridge, injected into the repair portal tab when Bridge asks. Read-only: reads the same Closed and Cancelled
-// work order lists the portal's Workorders page shows and returns a slim copy (no phone numbers or IMEIs).
+// Harbor Bridge, injected into the work orders tab when Bridge asks. Read-only: reads the same Closed and Cancelled
+// work order lists the system's own work orders page shows and returns a slim copy (no phone numbers or IMEIs).
 (() => {
-  if (window.__harborBridgePortal) return;
-  window.__harborBridgePortal = true;
+  if (window.__harborBridgeWorkorders) return;
+  window.__harborBridgeWorkorders = true;
+  // Adjust to your system: the list endpoint, and the field names read in slim() below.
+  const LIST_PATH = '/api/workorders';
   async function post(body) {
-    const r = await fetch('/api/workorders', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+    const r = await fetch(LIST_PATH, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
     const type = r.headers.get('content-type') || '';
     if (r.status === 401 || r.status === 403 || !type.includes('json')) throw new Error('SIGN_IN');
-    if (!r.ok) throw new Error('The portal returned ' + r.status + '.');
+    if (!r.ok) throw new Error('The work orders system returned ' + r.status + '.');
     return r.json();
   }
   const slim = (w, state) => ({
@@ -27,7 +29,7 @@
     }
   }
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (!msg || msg.type !== 'bridge:portal-wos') return;
+    if (!msg || msg.type !== 'bridge:workorders') return;
     (async () => {
       const wos = [];
       await pull('Closed', 'closed,DESC', 'closed', msg.since, wos, 8);

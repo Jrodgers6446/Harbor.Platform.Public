@@ -5,7 +5,7 @@ import { FakeMap, TECH_COLORS } from './FakeMap';
 // Clickable mock-up of the Harbor tablet app with made-up data: a rail on the left with Paperwork, Route, Assist
 // and Settings. The Phone switch shows the phone layout (bottom navigation, one screen at a time).
 
-type Cust = { name: string; device: string; window: string; addr: string; part: string; status: 'used' | 'rti' | null; outcome: 'completed' | 'rescheduled' | 'unrepaired' | null; reason?: string };
+type Cust = { name: string; device: string; window: string; addr: string; part: string; status: 'used' | 'returned' | null; outcome: 'completed' | 'rescheduled' | 'unrepaired' | null; reason?: string };
 const START: Cust[] = [
   { name: 'Dana Whitfield', device: 'Phone · Cracked screen', window: '8 – 10 AM', addr: '120 Oak St', part: 'P-48120', status: 'used', outcome: 'completed' },
   { name: 'Marcus Bell', device: 'Dishwasher · Not draining', window: '9 – 11 AM', addr: '48 Mill Rd', part: 'P-51207', status: 'used', outcome: 'completed' },
@@ -49,7 +49,7 @@ export function TabletDemo() {
       <div className="tablet-screen">
         <Rail on={tab} set={setTab} />
         <div className="tab-main">
-          <div className="tab-top">{phone && tab === 'paper' && pane === 'form' && <button className="btn sm" onClick={() => setPane('list')}>‹ Back</button>}<b>{tab === 'paper' ? 'Daily paperwork' : tab === 'route' ? 'Route' : tab === 'assist' ? 'Repair assist' : 'Settings'}</b>
+          <div className="tab-top">{phone && tab === 'paper' && pane === 'form' && <button className="btn sm" onClick={() => setPane('list')}>‹ Back</button>}<b>{tab === 'paper' ? 'Daily Forms' : tab === 'route' ? 'Route' : tab === 'assist' ? 'Repair assist' : 'Settings'}</b>
             <span className="chip ok">T1 · Van 1</span><span className="muted small" style={{ marginLeft: 'auto' }}>{done} of {list.length} done</span></div>
           {note && <div className="msg ok small">{note}</div>}
 
@@ -63,7 +63,7 @@ export function TabletDemo() {
               {showForm && <div className="tab-form">
                 <div><b style={{ fontSize: 16 }}>{c.name}</b><div className="small muted">{c.device} · {c.window} · {c.addr}</div></div>
                 <label className="f">Part SKU<input value={c.part} placeholder="e.g. P-48120" onChange={(e) => edit({ part: e.target.value })} /></label>
-                <div className="f">Part status<div className="seg2">{(['used', 'rti'] as const).map((s) => <button key={s} className={'btn sm' + (c.status === s ? ' primary' : '')} onClick={() => edit({ status: s })}>{s === 'used' ? 'Installed' : 'Returned'}</button>)}</div></div>
+                <div className="f">Part status<div className="seg2">{(['used', 'returned'] as const).map((s) => <button key={s} className={'btn sm' + (c.status === s ? ' primary' : '')} onClick={() => edit({ status: s })}>{s === 'used' ? 'Installed' : 'Returned'}</button>)}</div></div>
                 <div className="f">Outcome<div className="seg2">{(['completed', 'rescheduled', 'unrepaired'] as const).map((o) => <button key={o} className={'btn sm' + (c.outcome === o ? ' primary' : '')} onClick={() => edit({ outcome: o })}>{o[0].toUpperCase() + o.slice(1)}</button>)}</div></div>
                 {c.outcome && c.outcome !== 'completed' && <label className="f">Reason<input value={c.reason || ''} placeholder="Customer not home, rebooked" onChange={(e) => edit({ reason: e.target.value })} /></label>}
                 <button className="btn primary" onClick={next}>Done · next customer</button>

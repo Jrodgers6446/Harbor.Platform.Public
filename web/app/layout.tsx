@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import './shell.css';
 
-export const metadata: Metadata = { title: 'Harbor', description: 'Harbor by SageWorkx: route planning, daily sheets, pre-call texts and tablets for remote repair teams.' };
+export const metadata: Metadata = { title: 'Harbor', description: 'Harbor by SageWorkx: route planning, daily forms, pre-call texts and tablets for remote repair teams.' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

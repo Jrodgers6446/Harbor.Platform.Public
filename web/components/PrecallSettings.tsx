@@ -2,8 +2,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
-import { ACTIONS, CHECKS, DEFAULT_RULES, evaluate, render, type Rule } from '@/lib/precallRules';
-import { DEFAULT_LINE_ATT, DEFAULT_LINE_VZ, badChars, type PcSettings } from './PrecallModule';
+import { ACTIONS, CARRIER_PATTERNS, CHECKS, DEFAULT_RULES, evaluate, render, type Rule } from '@/lib/precallRules';
+import { DEFAULT_LINE_A, DEFAULT_LINE_B, badChars, type PcSettings } from './PrecallModule';
 
 // Settings → Pre-call, shared by every manager of the store (store_settings 'precall' and 'precall_rules').
 // Rules are checked top to bottom; the first that matches wins, then the rules indented under it are checked.
@@ -16,7 +16,7 @@ export function PrecallSettings() {
   const [msg, setMsg] = useState<{ t: string; k?: string }>({ t: '' });
   const [test, setTest] = useState('My screen is cracked and the back glass too');
   const [testKinds, setTestKinds] = useState('screen');
-  const [testCarrier, setTestCarrier] = useState('AT&T');
+  const [testCarrier, setTestCarrier] = useState(CARRIER_PATTERNS[0].name);
 
   useEffect(() => {
     sb.from('store_settings').select('key,value').in('key', ['precall', 'precall_rules']).then(({ data }) => {
@@ -53,7 +53,7 @@ export function PrecallSettings() {
   const kinds = testKinds.split(',').map((k) => k.trim()).filter(Boolean);
   const result = evaluate(rules, test, kinds.length ? kinds : null);
   const reply = result.rule && (result.rule.action === 'reply' || result.rule.action === 'both')
-    ? render(result.rule.reply, { first: 'Dana', date: 'Nov 15', window: '10am-12pm', carrier: testCarrier, filedKinds: kinds, claimLines: { att: s?.att || DEFAULT_LINE_ATT, verizon: s?.verizon || DEFAULT_LINE_VZ } })
+    ? render(result.rule.reply, { first: 'Dana', date: 'Nov 15', window: '10am-12pm', carrier: testCarrier, filedKinds: kinds, claimLines: { lineA: s?.lineA || DEFAULT_LINE_A, lineB: s?.lineB || DEFAULT_LINE_B } })
     : null;
 
   if (!s) return <div className="w-empty">Loading…</div>;
@@ -64,8 +64,8 @@ export function PrecallSettings() {
 
     <h3 style={{ marginTop: 8 }}>Carrier claim lines</h3>
     <p className="muted small" style={{ margin: 0 }}>Used as {'{claimLine}'} when a customer&apos;s description differs from the filed claim.</p>
-    <label className="f">AT&amp;T<input defaultValue={s.att || DEFAULT_LINE_ATT} onBlur={(e) => saveLines({ att: e.target.value.trim() || DEFAULT_LINE_ATT })} /></label>
-    <label className="f">Verizon<input defaultValue={s.verizon || DEFAULT_LINE_VZ} onBlur={(e) => saveLines({ verizon: e.target.value.trim() || DEFAULT_LINE_VZ })} /></label>
+    <label className="f">{CARRIER_PATTERNS.find((c) => c.key === 'lineA')?.name}<input defaultValue={s.lineA || DEFAULT_LINE_A} onBlur={(e) => saveLines({ lineA: e.target.value.trim() || DEFAULT_LINE_A })} /></label>
+    <label className="f">{CARRIER_PATTERNS.find((c) => c.key === 'lineB')?.name}<input defaultValue={s.lineB || DEFAULT_LINE_B} onBlur={(e) => saveLines({ lineB: e.target.value.trim() || DEFAULT_LINE_B })} /></label>
     <label className="toggle-row"><span>Watch for replies after a send<div className="small muted">Every 3 minutes for 30 minutes while Pre-call is open.</div></span><input type="checkbox" checked={s.watchOn !== false} onChange={(e) => saveLines({ watchOn: e.target.checked })} /></label>
 
     <h3 style={{ marginTop: 8 }}>Reply logic</h3>
@@ -98,7 +98,7 @@ export function PrecallSettings() {
       <b>Try a reply</b>
       <textarea className="pc-tpl" rows={2} value={test} onChange={(e) => setTest(e.target.value)} aria-label="Customer reply to test" />
       <div className="row"><label className="f">Filed for<input value={testKinds} onChange={(e) => setTestKinds(e.target.value)} placeholder="screen, bg, battery" /></label>
-        <label className="f">Carrier<select value={testCarrier} onChange={(e) => setTestCarrier(e.target.value)}><option>AT&amp;T</option><option>Verizon</option></select></label></div>
+        <label className="f">Carrier<select value={testCarrier} onChange={(e) => setTestCarrier(e.target.value)}>{CARRIER_PATTERNS.map((c) => <option key={c.key}>{c.name}</option>)}</select></label></div>
       <div className="muted">Path: {result.path.join(' → ') || 'no rule matched'}</div>
       {result.extra.length > 0 && <div className="muted">Mentions repairs not filed: {result.extra.join(', ')}</div>}
       <div>{result.rule ? <><b>{ACTIONS[result.rule.action] || result.rule.action}</b>{reply ? <>: “{reply}”</> : (result.rule.action === 'reply' || result.rule.action === 'both') ? ': (a placeholder can’t be filled, so it would be flagged instead)' : ''}</> : 'Nothing happens.'}</div>

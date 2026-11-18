@@ -1,3 +1,28 @@
-No license has been chosen yet.
+SageWorkx Source-Available License (View Only)
 
-Until the owner picks one, all rights are reserved. See the README for the open question.
+Copyright (c) 2026 SageWorkx. All rights reserved.
+
+This repository and everything in it (the "Software") is proprietary. The source is public so it can be read, and
+that is the only permission granted.
+
+Permitted:
+  - Viewing and reading the Software.
+
+Not permitted without prior written permission from SageWorkx:
+  - Copying or reproducing any part of the Software.
+  - Modifying the Software or creating derivative works.
+  - Distributing, publishing, sublicensing, selling or otherwise making the Software available to others.
+  - Forking the Software for use, or running, deploying or hosting it, for any purpose.
+  - Any commercial use.
+  - Using the Software, or any part of it, to train or fine-tune a machine learning model.
+
+No patent or trademark rights are granted. "SageWorkx" and "Harbor" are names used by the copyright holder.
+
+Using the Software in breach of these terms is unauthorized use and ends any permission to view it.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ITS USE.
+
+To ask for permission, open a private security advisory or contact the repository owner through GitHub.

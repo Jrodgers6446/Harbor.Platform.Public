@@ -24,7 +24,7 @@ data class Job(
     val bgSku: String = "",
     val batterySku: String = "",
     val rw: String = "",
-    val partStatus: String? = null,   // used | rti
+    val partStatus: String? = null,   // used | returned
     val outcome: String? = null,      // completed | rescheduled | unrepaired
     val reason: String = "",
 ) {

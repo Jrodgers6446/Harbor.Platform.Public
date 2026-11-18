@@ -6,11 +6,11 @@ export const addDays = (d: string, n: number) => { const t = new Date(d + 'T12:0
 export const dayLabel = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
 export type BridgeConnection = { id: string; name: string; kind: string; at: number | null };
-export type BridgeState = { installed: boolean; version?: string; hcAt?: number | null; portalAt?: number | null; connections?: BridgeConnection[]; busy?: boolean; error?: string | null };
+export type BridgeState = { installed: boolean; version?: string; dispatchAt?: number | null; workordersAt?: number | null; connections?: BridgeConnection[]; busy?: boolean; error?: string | null };
 
 /**
  * Talks to the Harbor Bridge extension through window messages (see bridge/site.js).
- *   Bridge -> page  { source: 'harbor-bridge', type: 'hello' | 'status', version, hcAt, portalAt }
+ *   Bridge -> page  { source: 'harbor-bridge', type: 'hello' | 'status', version, dispatchAt, workordersAt }
  *                   { source: 'harbor-bridge', type: 'done', what, ok, error? }
  *   page -> Bridge  { source: 'harbor-site', type: 'ping' | 'refresh' | 'open', what? ('all' on refresh), day?, token? }
  * The Bridge also sets <html data-harbor-bridge="version"> so a fresh page knows straight away.
@@ -23,7 +23,7 @@ export function useBridge(onDone?: (what: string, ok: boolean) => void) {
     const on = (e: MessageEvent) => {
       if (e.source !== window || e.data?.source !== 'harbor-bridge') return;
       const m = e.data;
-      if (m.type === 'hello' || m.type === 'status') set((o) => ({ ...o, installed: true, version: m.version, hcAt: m.hcAt ?? o.hcAt, portalAt: m.portalAt ?? o.portalAt, connections: m.connections ?? o.connections }));
+      if (m.type === 'hello' || m.type === 'status') set((o) => ({ ...o, installed: true, version: m.version, dispatchAt: m.dispatchAt ?? o.dispatchAt, workordersAt: m.workordersAt ?? o.workordersAt, connections: m.connections ?? o.connections }));
       if (m.type === 'done') { set((o) => ({ ...o, busy: false, error: m.ok ? null : m.error || 'Refresh failed' })); onDone?.(m.what, !!m.ok); }
     };
     window.addEventListener('message', on);
@@ -37,7 +37,7 @@ export function useBridge(onDone?: (what: string, ok: boolean) => void) {
     const { data } = await supabaseBrowser().auth.getSession();
     window.postMessage({ source: 'harbor-site', type: 'refresh', what: 'all', day, token: data.session?.access_token }, location.origin);
   }, []);
-  const open = useCallback((what: 'honeycomb' | 'portal') => window.postMessage({ source: 'harbor-site', type: 'open', what }, location.origin), []);
+  const open = useCallback((what: 'dispatch' | 'workorders') => window.postMessage({ source: 'harbor-site', type: 'open', what }, location.origin), []);
   return { bridge: s, refresh, open };
 }
 

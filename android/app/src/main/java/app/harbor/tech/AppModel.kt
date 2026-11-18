@@ -216,7 +216,7 @@ class AppModel(private val context: Context) {
         } catch (e: ApiException) {
             if (e.code == 401) signOut() else toast(e.message)
         } catch (e: Exception) {
-            toast(e.message ?: "Couldn't load today's sheet")
+            toast(e.message ?: "Couldn't load today's forms")
         } finally { busy = false; loaded = true }
     }
 
@@ -289,7 +289,7 @@ class AppModel(private val context: Context) {
             flushDirty()
             if (dirty.isNotEmpty()) throw ApiException("Some customers aren't saved yet. Check the connection.")
             repo.submit(s, manager, signature)
-            toast("Sheet submitted")
+            toast("Forms submitted")
             done()
             refresh()
         } catch (e: Exception) { toast(e.message ?: "Couldn't submit") } finally { busy = false }

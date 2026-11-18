@@ -29,7 +29,7 @@ export const WELCOME_DEFAULT: Welcome = {
   featuresLead: 'The same modules your managers use every day, on the web for every manager, plus a space for each of your locations.',
   features: [
     { icon: 'routes', title: 'Route Planner', text: 'Every tech’s stops for the day in order, with time windows and one tap to open the route in Maps.' },
-    { icon: 'dps', title: 'Daily paperwork', text: 'Builds tomorrow’s daily paperwork forms from the schedule and sends them to each tech’s tablet. Signed off at the end of the day.' },
+    { icon: 'forms', title: 'Daily Forms', text: 'Builds tomorrow’s daily forms from the schedule and sends them to each tech’s tablet. Signed off at the end of the day.' },
     { icon: 'precall', title: 'Pre-call', text: 'Confirms tomorrow’s customers before the visit, then sorts the replies: confirmed, new time, extra work, no answer.' },
     { icon: 'techdash', title: 'Tech Dashboard', text: 'Jobs done, cancellations and completion rate per tech, from the systems you already use.' },
     { icon: 'devices', title: 'Tablets', text: 'Set up a tablet by scanning a QR code. A live map shows every van, and Overwatch flags long jobs, stops off route and missed customers.' },
@@ -57,7 +57,7 @@ export function welcomeFrom(v: unknown): Welcome {
   const str = (k: keyof Welcome) => (typeof o[k] === 'string' && (o[k] as string).trim() ? (o[k] as string) : (WELCOME_DEFAULT[k] as string));
   return {
     ...(Object.fromEntries((Object.keys(WELCOME_DEFAULT) as (keyof Welcome)[]).filter((k) => typeof WELCOME_DEFAULT[k] === 'string').map((k) => [k, str(k)])) as any),
-    features: Array.isArray(o.features) && o.features.length ? o.features.slice(0, 12).map((f) => ({ icon: String(f?.icon || 'dps'), title: String(f?.title || ''), text: String(f?.text || '') })) : WELCOME_DEFAULT.features,
+    features: Array.isArray(o.features) && o.features.length ? o.features.slice(0, 12).map((f) => ({ icon: String(f?.icon || 'forms'), title: String(f?.title || ''), text: String(f?.text || '') })) : WELCOME_DEFAULT.features,
     steps: Array.isArray(o.steps) && o.steps.length ? o.steps.slice(0, 6).map((f) => ({ title: String(f?.title || ''), text: String(f?.text || '') })) : WELCOME_DEFAULT.steps,
   };
 }

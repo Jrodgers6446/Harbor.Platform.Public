@@ -5,7 +5,7 @@
   const version = chrome.runtime.getManifest().version;
   document.documentElement.dataset.harborBridge = version;
   const post = (m) => window.postMessage({ source: 'harbor-bridge', version, ...m }, location.origin);
-  const status = async () => { const s = await chrome.runtime.sendMessage({ type: 'bridge:status' }).catch(() => null); post({ type: 'status', hcAt: s && s.hcAt, portalAt: s && s.portalAt, connections: (s && s.connections) || [] }); };
+  const status = async () => { const s = await chrome.runtime.sendMessage({ type: 'bridge:status' }).catch(() => null); post({ type: 'status', dispatchAt: s && s.dispatchAt, workordersAt: s && s.workordersAt, connections: (s && s.connections) || [] }); };
   window.addEventListener('message', async (ev) => {
     if (ev.source !== window || !ev.data || ev.data.source !== 'harbor-site') return;
     const m = ev.data;

@@ -32,7 +32,7 @@ class PrecallRun extends EventEmitter {
     this.jobs = jobs;
     this.template = template;
     this.mode = mode;               // "dry" | "type" | "send" | "replies" | "replies-dry"
-    this.replyConfig = replyConfig; // { templates: { thanks, mismatch }, claimLines: { att, verizon } }
+    this.replyConfig = replyConfig; // { templates: { thanks, mismatch }, claimLines: { lineA, lineB } }
     this.cfg = cfg;
     this.state = "queued";          // queued | running | done | cancelled | failed
     this.results = [];

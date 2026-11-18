@@ -1,9 +1,9 @@
 \set ON_ERROR_STOP 0
-insert into auth.users values ('11111111-1111-1111-1111-111111111111','mgr@x.com'),('22222222-2222-2222-2222-222222222222','tech@x.com'),('33333333-3333-3333-3333-333333333333','other@y.com');
+insert into auth.users values ('11111111-1111-1111-1111-111111111111','mgr@a.example'),('22222222-2222-2222-2222-222222222222','tech@a.example'),('33333333-3333-3333-3333-333333333333','other@b.example');
 insert into franchises (id,name) values ('aaaaaaaa-0000-0000-0000-000000000001','Example Store'),('aaaaaaaa-0000-0000-0000-000000000002','Elsewhere');
-insert into profiles values ('11111111-1111-1111-1111-111111111111','aaaaaaaa-0000-0000-0000-000000000001','manager','Mgr','mgr@x.com'),
- ('22222222-2222-2222-2222-222222222222','aaaaaaaa-0000-0000-0000-000000000001','tech','Tech','tech@x.com'),
- ('33333333-3333-3333-3333-333333333333','aaaaaaaa-0000-0000-0000-000000000002','manager','Other','other@y.com');
+insert into profiles values ('11111111-1111-1111-1111-111111111111','aaaaaaaa-0000-0000-0000-000000000001','manager','Mgr','mgr@a.example'),
+ ('22222222-2222-2222-2222-222222222222','aaaaaaaa-0000-0000-0000-000000000001','tech','Tech','tech@a.example'),
+ ('33333333-3333-3333-3333-333333333333','aaaaaaaa-0000-0000-0000-000000000002','manager','Other','other@b.example');
 -- tech asks to pair
 set role authenticated; set request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
 select device_id is not null as got_id, length(pair_code) as code_len from request_pairing('Tablet 07','SM-X230','1.0');

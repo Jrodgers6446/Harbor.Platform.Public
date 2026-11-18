@@ -79,13 +79,22 @@ export function evaluate(rules: Rule[] | null, text: string, filedKinds: string[
 export const fill = (tpl: string, v: Record<string, any>) => String(tpl || "").replace(/\{(\w+)\}/g, (m: string, k: string) => (k in v && v[k] != null && v[k] !== "" ? String(v[k]) : m))
   .replace(/\s*\(\s*\)/g, "").replace(/\s+/g, " ").replace(/\s+([,.!?])/g, "$1").trim();
 
+// Put your real carrier names in these patterns. `key` is the claim line setting (lineA, lineB) that goes with the
+// carrier, `name` is what replies and the settings page call it. Checked in order; the first match wins.
+export const CARRIER_PATTERNS: { key: 'lineA' | 'lineB'; name: string; pattern: RegExp }[] = [
+  { key: "lineB", name: "Carrier B", pattern: /carrier b/i },
+  { key: "lineA", name: "Carrier A", pattern: /carrier a/i },
+];
+export const carrierOf = (text: string | null | undefined) => CARRIER_PATTERNS.find((c) => c.pattern.test(text || "")) || null;
+
 /** Fill a reply. Returns null if it still has a {placeholder} that couldn't be filled (e.g. unknown carrier). */
 export function render(tpl: string, ctx: Record<string, any>) {
-  const carrier = /verizon/i.test(ctx.carrier || "") ? "Verizon" : /at&?t|\batt/i.test(ctx.carrier || "") ? "AT&T" : null;
+  const c = carrierOf(ctx.carrier);
+  const carrier = c ? c.name : null;
   const lines = ctx.claimLines || {};
   const vars = {
     first: ctx.first, last: ctx.last, date: ctx.date, window: ctx.window, tech: ctx.tech, carrier,
-    claimLine: carrier === "Verizon" ? lines.verizon : carrier === "AT&T" ? lines.att : null,
+    claimLine: c ? lines[c.key] : null,
     filed: Array.isArray(ctx.filedKinds) && ctx.filedKinds.length ? joinWords(ctx.filedKinds.filter((k: string) => k !== "rw").map((k: string) => LABEL[k] || k)) : null,
   };
   const out = fill(tpl, vars);

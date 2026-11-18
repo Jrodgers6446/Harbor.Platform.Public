@@ -185,7 +185,7 @@ $$ select coalesce(jsonb_object_agg(f.key, coalesce(ff.enabled, f.default_on)), 
 insert into features (key, name, description, default_on) values
   ('tablet.route',  'Tablet: Route map',     'The jobs map with Fastest / On time ordering', true),
   ('tablet.assist', 'Tablet: Repair assist', 'Step-by-step guides, parts, checklist, notes', true),
-  ('web.sheets',    'Website: Daily sheets', 'See and print submitted DPS sheets with the manager signature', true),
+  ('web.sheets',    'Website: Daily forms', 'See and print submitted daily forms with the manager signature', true),
   ('web.guides',    'Website: Repair guides editor', 'Managers write their store''s own repair guides', true)
 on conflict (key) do nothing;
 

@@ -41,7 +41,7 @@
     }
   ],
   "optional_host_permissions": [
-    "https://honeycomb.fieldservices.asurion.com/*",
-    "https://portal.ubreakifix.net/*"
+    "https://dispatch.example.com/*",
+    "https://workorders.example.com/*"
   ]
 }

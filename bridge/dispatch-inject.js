@@ -1,9 +1,12 @@
 // Harbor Bridge, runs inside the dispatch board page. Read-only: watches the board's own GraphQL responses for the
-// day's jobs and tech shifts and hands them to hc-relay.js. It never sends requests of its own.
+// day's jobs and tech shifts and hands them to dispatch-relay.js. It never sends requests of its own.
 (() => {
   if (window.__harborBridgeHooked) return;
   window.__harborBridgeHooked = true;
-  const isGql = (url) => typeof url === 'string' && url.includes('/gql');
+  // Adjust to your system: the path of the board's GraphQL endpoint and the operation names it uses.
+  const GQL_PATH = '/gql';
+  const OP_JOBS = 'serviceJobs', OP_SHIFTS = 'shiftList';
+  const isGql = (url) => typeof url === 'string' && url.includes(GQL_PATH);
   const opName = (body) => { try { const b = typeof body === 'string' ? JSON.parse(body) : body; return Array.isArray(b) ? b.map((x) => x && x.operationName) : b && b.operationName; } catch { return null; } };
 
   function handle(op, text) {
@@ -13,7 +16,7 @@
     ops.forEach((name, i) => {
       const data = results[i] && results[i].data;
       if (!data) return;
-      let kind = name === 'serviceJobs' || name === 'shiftList' ? name : null;
+      let kind = name === OP_JOBS ? 'serviceJobs' : name === OP_SHIFTS ? 'shiftList' : null;
       if (!kind && Array.isArray(data.serviceJobs)) kind = 'serviceJobs';
       if (!kind && Array.isArray(data.shifts)) kind = 'shiftList';
       if (kind) window.postMessage({ __harborBridge: true, kind, data, url: location.href }, location.origin);

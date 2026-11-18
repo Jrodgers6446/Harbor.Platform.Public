@@ -49,7 +49,7 @@ export default async function Welcome() {
               <div className="kpi"><div className="kpi-label">Tablets</div><div className="kpi-num">4 <span className="kpi-of">/ 4</span></div></div>
             </div>
             <div className="row2">
-              <div className="widget"><div className="w-head"><h2>Daily paperwork</h2></div>
+              <div className="widget"><div className="w-head"><h2>Daily Forms</h2></div>
                 {['Alex Rivera', 'Sam Patel', 'Jordan Lee'].map((n, i) => <div className="w-row" key={n}><span className={'dot ' + (i ? 'warn' : 'ok')} /><div className="w-grow"><b>{n}</b><div className="w-note">{[6, 5, 6][i]} customers</div></div></div>)}
               </div>
               <div className="widget"><div className="w-head"><h2>Pre-call</h2></div>

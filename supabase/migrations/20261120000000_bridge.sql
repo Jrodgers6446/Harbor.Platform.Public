@@ -1,16 +1,16 @@
--- Bridge: the Chrome extension copies what the dispatch system and the repair portal show into Harbor,
+-- Bridge: the Chrome extension copies what the dispatch system and the work orders system show into Harbor,
 -- so the website modules (Pre-call list, Tech Dashboard, Home widgets) have live data. Needs 0004.
 --
---   Bridge -> POST /rest/v1/rpc/bridge_put { p_source: 'honeycomb' | 'portal', p_day: 'YYYY-MM-DD', p_payload: {...} }
+--   Bridge -> POST /rest/v1/rpc/bridge_put { p_source: 'dispatch' | 'workorders', p_day: 'YYYY-MM-DD', p_payload: {...} }
 --             with the signed-in manager's own website session (the site hands its token to the Bridge for each refresh).
---   Website -> GET /rest/v1/bridge_snapshots?source=eq.honeycomb&day=eq.2026-11-15
+--   Website -> GET /rest/v1/bridge_snapshots?source=eq.dispatch&day=eq.2026-11-15
 --
 -- One row per store + source + day; a refresh replaces it. Only managers (and Overwatch) can write or read,
 -- and only for their own store. Rows older than 14 days are dropped on each write (they hold customer names).
 
 create table if not exists bridge_snapshots (
   franchise_id uuid not null references franchises(id) on delete cascade,
-  source       text not null check (source in ('honeycomb', 'portal')),
+  source       text not null check (source in ('dispatch', 'workorders')),
   day          date not null,
   payload      jsonb not null,
   captured_at  timestamptz not null default now(),
@@ -30,7 +30,7 @@ $$
 declare f uuid := my_franchise(); t timestamptz := now();
 begin
   if f is null or not i_am_manager() then raise exception 'Only a store manager can send Bridge data.' using errcode = '42501'; end if;
-  if p_source not in ('honeycomb', 'portal') then raise exception 'Unknown source %', p_source; end if;
+  if p_source not in ('dispatch', 'workorders') then raise exception 'Unknown source %', p_source; end if;
   if p_day is null or p_day < current_date - 30 or p_day > current_date + 30 then raise exception 'Day is out of range.'; end if;
   if p_payload is null or jsonb_typeof(p_payload) <> 'object' then raise exception 'Payload must be an object.'; end if;
   if octet_length(p_payload::text) > 2000000 then raise exception 'Too much data for one refresh.'; end if;

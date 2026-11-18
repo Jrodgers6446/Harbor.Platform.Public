@@ -7,9 +7,13 @@ const SUPABASE = 'https://your-project.supabase.co';
 const KEY = 'your-anon-key';
 const SITES = ['https://harbor.example.com', 'https://harbor-overwatch.example.com'];
 
-// Third-party systems the built-in connectors read.
-const HC = 'https://honeycomb.fieldservices.asurion.com';
-const PORTAL = 'https://portal.ubreakifix.net';
+// The two systems the built-in connectors read. Replace these placeholders with your real hosts, and keep
+// manifest.json (optional_host_permissions) and popup.js (MATCH) in step.
+const DISPATCH = 'https://dispatch.example.com';
+const WORKORDERS = 'https://workorders.example.com';
+// Page paths on those hosts. Adjust to your system.
+const DISPATCH_BOARD_PATH = '/board';
+const WORKORDERS_PAGE_PATH = '/workorders';
 // Optional. Filled in from the board's own URL the first time you open it.
 const DEFAULT_LOCATION = '';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -20,14 +24,14 @@ const minus = (d, n) => new Date(Date.parse(d + 'T12:00:00Z') - n * 864e5).toISO
 // ---------------------------------------------------------------- connections
 // 'schedule' = the day's jobs and techs; 'workorders' = finished work.
 const CONNECTORS = {
-  honeycomb: {
-    name: 'Dispatch board', kind: 'schedule', origin: HC, match: HC + '/*',
+  dispatch: {
+    name: 'Dispatch board', kind: 'schedule', origin: DISPATCH, match: DISPATCH + '/*',
     scripts: [
-      { id: 'c-honeycomb-main', matches: [HC + '/*'], js: ['hc-inject.js'], runAt: 'document_start', world: 'MAIN' },
-      { id: 'c-honeycomb-relay', matches: [HC + '/*'], js: ['hc-relay.js'], runAt: 'document_start' },
+      { id: 'c-dispatch-main', matches: [DISPATCH + '/*'], js: ['dispatch-inject.js'], runAt: 'document_start', world: 'MAIN' },
+      { id: 'c-dispatch-relay', matches: [DISPATCH + '/*'], js: ['dispatch-relay.js'], runAt: 'document_start' },
     ],
   },
-  portal: { name: 'Repair portal', kind: 'workorders', origin: PORTAL, match: PORTAL + '/*', scripts: [] },
+  workorders: { name: 'Work orders', kind: 'workorders', origin: WORKORDERS, match: WORKORDERS + '/*', scripts: [] },
 };
 const enabledIds = async () => ((await get('bridge:connectors')) || []).filter((id) => CONNECTORS[id]);
 async function syncScripts() {
@@ -68,24 +72,24 @@ chrome.runtime.onInstalled.addListener(async () => {
   await syncScripts().catch(() => {});
 });
 
-// ---------------------------------------------------------------- dispatch board capture (from hc-relay.js)
+// ---------------------------------------------------------------- dispatch board capture (from dispatch-relay.js)
 let queue = Promise.resolve();
 const enabledIdsSync = new Set();
 const refreshEnabledSet = async () => { enabledIdsSync.clear(); (await enabledIds()).forEach((i) => enabledIdsSync.add(i)); };
 refreshEnabledSet(); chrome.storage.onChanged.addListener((c) => { if (c['bridge:connectors']) refreshEnabledSet(); });
-async function saveHc(msg) {
-  const key = `hc:${msg.date}`;
+async function saveDispatch(msg) {
+  const key = `dispatch:${msg.date}`;
   const rec = (await get(key)) || { date: msg.date };
   rec[msg.kind] = msg.items; rec[msg.kind + 'At'] = Date.now();
   if (msg.locationId) { rec.locationId = msg.locationId; await chrome.storage.local.set({ 'bridge:loc': msg.locationId }); }
-  const index = ((await get('hc:index')) || []).filter((d) => d !== msg.date);
+  const index = ((await get('dispatch:index')) || []).filter((d) => d !== msg.date);
   index.unshift(msg.date);
   const drop = index.splice(7); // keep a week; it holds customer names
-  await chrome.storage.local.set({ [key]: rec, 'hc:index': index });
-  if (drop.length) await chrome.storage.local.remove(drop.map((d) => `hc:${d}`));
+  await chrome.storage.local.set({ [key]: rec, 'dispatch:index': index });
+  if (drop.length) await chrome.storage.local.remove(drop.map((d) => `dispatch:${d}`));
 }
 
-function slimHc(rec) {
+function slimDispatch(rec) {
   const loc = rec.locationId;
   const techs = (rec.shiftList || []).filter((s) => s && s.technician && !s.deletedAt).map((s) => ({
     id: String(s.technician.technicianIdentifier), name: s.technician.technicianName || '',
@@ -111,9 +115,9 @@ async function waitLoaded(tabId, ms = 30000) {
   return chrome.tabs.get(tabId).catch(() => null);
 }
 const onHost = (url, base) => { try { return new URL(url).origin === base; } catch { return false; } };
-const boardUrl = (day, loc) => `${HC}/multimarket?${[day && `dateString=${day}`, loc && `locationId=${loc}`].filter(Boolean).join('&')}`;
+const boardUrl = (day, loc) => `${DISPATCH}${DISPATCH_BOARD_PATH}?${[day && `dateString=${day}`, loc && `locationId=${loc}`].filter(Boolean).join('&')}`;
 
-async function readHoneycomb(day) {
+async function readDispatch(day) {
   const loc = (await get('bridge:loc')) || DEFAULT_LOCATION;
   const started = Date.now();
   const tab = await chrome.tabs.create({ url: boardUrl(day, loc), active: false });
@@ -121,12 +125,12 @@ async function readHoneycomb(day) {
   try {
     for (let i = 0; i < 60; i++) {
       await sleep(500);
-      const rec = await get(`hc:${day}`);
+      const rec = await get(`dispatch:${day}`);
       if (rec && rec.serviceJobsAt > started && rec.shiftListAt > started) return { ok: true, rec };
       if (i === 12 || i === 40) {
         const t = await chrome.tabs.get(tab.id).catch(() => null);
         if (!t) return { ok: false, error: 'The dispatch board tab was closed.' };
-        if (!onHost(t.url || t.pendingUrl, HC) || /login|signin|oauth|authorize/i.test(t.url || '')) {
+        if (!onHost(t.url || t.pendingUrl, DISPATCH) || /login|signin|oauth|authorize/i.test(t.url || '')) {
           keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {});
           return { ok: false, error: 'Sign in to the dispatch board in the tab that just opened, then press refresh again.' };
         }
@@ -137,22 +141,22 @@ async function readHoneycomb(day) {
   } finally { if (!keep) chrome.tabs.remove(tab.id).catch(() => {}); }
 }
 
-// ---------------------------------------------------------------- portal
-async function readPortal(day) {
-  let tab = (await chrome.tabs.query({ url: PORTAL + '/*' }))[0], created = false, keep = false;
-  if (!tab) { tab = await chrome.tabs.create({ url: PORTAL + '/repair/workorders', active: false }); created = true; await waitLoaded(tab.id); await sleep(1500); }
+// ---------------------------------------------------------------- work orders
+async function readWorkorders(day) {
+  let tab = (await chrome.tabs.query({ url: WORKORDERS + '/*' }))[0], created = false, keep = false;
+  if (!tab) { tab = await chrome.tabs.create({ url: WORKORDERS + WORKORDERS_PAGE_PATH, active: false }); created = true; await waitLoaded(tab.id); await sleep(1500); }
   try {
     const now = await chrome.tabs.get(tab.id);
-    if (!onHost(now.url || now.pendingUrl, PORTAL)) { keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {}); return { ok: false, error: 'Sign in to the portal in the tab that just opened, then press refresh again.' }; }
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['portal.js'] });
-    const r = await chrome.tabs.sendMessage(tab.id, { type: 'bridge:portal-wos', since: minus(day, 6) });
+    if (!onHost(now.url || now.pendingUrl, WORKORDERS)) { keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {}); return { ok: false, error: 'Sign in to the work orders system in the tab that just opened, then press refresh again.' }; }
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['workorders.js'] });
+    const r = await chrome.tabs.sendMessage(tab.id, { type: 'bridge:workorders', since: minus(day, 6) });
     if (!r || !r.ok) {
-      if (r && r.error === 'SIGN_IN') { keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {}); return { ok: false, error: 'The portal sign-in has expired. Sign in again in the portal tab, then press refresh again.' }; }
-      return { ok: false, error: (r && r.error) || "Couldn't read the portal." };
+      if (r && r.error === 'SIGN_IN') { keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {}); return { ok: false, error: 'The work orders sign-in has expired. Sign in again in that tab, then press refresh again.' }; }
+      return { ok: false, error: (r && r.error) || "Couldn't read the work orders system." };
     }
     return { ok: true, since: minus(day, 6), wos: r.wos };
   } catch (e) {
-    if (/cannot access|permission|host/i.test(e.message || '')) { keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {}); return { ok: false, error: 'Sign in to the portal in the tab that just opened, then try again.' }; }
+    if (/cannot access|permission|host/i.test(e.message || '')) { keep = true; chrome.tabs.update(tab.id, { active: true }).catch(() => {}); return { ok: false, error: 'Sign in to the work orders system in the tab that just opened, then try again.' }; }
     return { ok: false, error: e.message || String(e) };
   } finally { if (created && !keep) chrome.tabs.remove(tab.id).catch(() => {}); }
 }
@@ -173,14 +177,14 @@ async function upload(source, day, payload, token) {
 async function refreshOne(id, day, token) {
   const c = CONNECTORS[id];
   let u;
-  if (id === 'honeycomb') {
-    const r = await readHoneycomb(day);
+  if (id === 'dispatch') {
+    const r = await readDispatch(day);
     if (!r.ok) return r;
-    u = await upload('honeycomb', day, slimHc(r.rec), token);
-  } else if (id === 'portal') {
-    const r = await readPortal(day);
+    u = await upload('dispatch', day, slimDispatch(r.rec), token);
+  } else if (id === 'workorders') {
+    const r = await readWorkorders(day);
     if (!r.ok) return r;
-    u = await upload('portal', day, { since: r.since, wos: r.wos }, token);
+    u = await upload('workorders', day, { since: r.since, wos: r.wos }, token);
   } else return { ok: false, error: `No reader for ${c ? c.name : id}.` };
   if (u.ok) { const at = (await get('bridge:at')) || {}; at[id] = Date.now(); await chrome.storage.local.set({ 'bridge:at': at }); }
   return u;
@@ -202,14 +206,14 @@ async function open(id) {
   const t = (await chrome.tabs.query({ url: c.match }))[0];
   if (t) { await chrome.tabs.update(t.id, { active: true }); await chrome.windows.update(t.windowId, { focused: true }).catch(() => {}); return; }
   const loc = (await get('bridge:loc')) || DEFAULT_LOCATION;
-  chrome.tabs.create({ url: id === 'portal' ? PORTAL + '/repair/workorders' : id === 'honeycomb' ? boardUrl(null, loc) : c.origin });
+  chrome.tabs.create({ url: id === 'workorders' ? WORKORDERS + WORKORDERS_PAGE_PATH : id === 'dispatch' ? boardUrl(null, loc) : c.origin });
 }
 
 // What the website shows: when each kind was last read, and the connection names (for the button's tooltip).
 async function status() {
   const l = await connectionList();
   const kindAt = (k) => { const x = l.connected.filter((c) => c.kind === k); return x.length ? Math.min(...x.map((c) => c.at || 0)) || null : null; };
-  return { hcAt: kindAt('schedule'), portalAt: kindAt('workorders'), connections: l.connected };
+  return { dispatchAt: kindAt('schedule'), workordersAt: kindAt('workorders'), connections: l.connected };
 }
 
 // ---------------------------------------------------------------- Harbor Helper
@@ -250,7 +254,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     call(msg.op, msg.args).then(sendResponse).catch((e) => sendResponse({ ok: false, error: e.message || String(e) }));
     return true;
   }
-  if (msg.type === 'bridge:hc') { if (onHost(sender.url, HC) && enabledIdsSync.has('honeycomb')) queue = queue.then(() => saveHc(msg)).catch(() => {}); return; }
+  if (msg.type === 'bridge:dispatch') { if (onHost(sender.url, DISPATCH) && enabledIdsSync.has('dispatch')) queue = queue.then(() => saveDispatch(msg)).catch(() => {}); return; }
   if (msg.type === 'bridge:status') { status().then(sendResponse); return true; }
   // popup only (extension pages have no tab url on a site)
   if (msg.type === 'bridge:connections' || msg.type === 'bridge:add' || msg.type === 'bridge:remove') {

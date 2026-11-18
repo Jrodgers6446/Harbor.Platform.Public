@@ -1,6 +1,6 @@
 \set ON_ERROR_STOP 0
 reset role;
-insert into auth.users values ('55555555-5555-5555-5555-555555555555','newtech@x.com');
+insert into auth.users values ('55555555-5555-5555-5555-555555555555','newtech@a.example');
 select length(join_code) as code_len from franchises where name='Example Store';
 select join_code as code from franchises where name='Example Store' \gset
 \echo new tech: not joined yet (0 rows), bad code fails, good code joins as tech
