@@ -7,7 +7,7 @@ plugins {
 // Set these with -PHARBOR_SUPABASE_URL=... -PHARBOR_SUPABASE_ANON_KEY=... or as environment variables.
 // The anon key is meant to ship in apps (row level security protects the data), but it stays out of git.
 fun setting(name: String, fallback: String): String =
-    (project.findProperty(name) as String?) ?: System.getenv(name) ?: fallback
+    ((project.findProperty(name) as String?) ?: System.getenv(name))?.takeIf { it.isNotBlank() } ?: fallback
 
 val supabaseUrl = setting("HARBOR_SUPABASE_URL", "https://your-project.supabase.co")
 val supabaseKey = setting("HARBOR_SUPABASE_ANON_KEY", "your-anon-key")
