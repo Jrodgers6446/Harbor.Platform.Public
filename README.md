@@ -64,6 +64,9 @@ the checks passing.
 
 ## Things to know before you deploy
 
+- Sign-up is limited to one email domain. It is set in `signup_domain_ok()` in the signups migration and in
+  `NEXT_PUBLIC_SIGNUP_DOMAIN` for the web form. Both default to `example.com`; change both.
+- For CI builds, set repo variables `SUPABASE_URL` and `SUPABASE_ANON_KEY` so the APK points at your project.
 - The two built-in Bridge connectors point at specific third-party sites, and `helper/src/fieldapp.js` drives a specific
   third-party Android app. Swap them for the systems you use.
 - The database check constraint on `bridge_snapshots.source` allows `honeycomb` and `portal`. If you add connectors,

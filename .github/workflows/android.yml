@@ -30,6 +30,8 @@ jobs:
           fi
       - name: Build APK
         env:
+          HARBOR_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          HARBOR_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           HARBOR_KEYSTORE_PASSWORD: ${{ secrets.HARBOR_KEYSTORE_PASSWORD }}
           HARBOR_KEY_ALIAS: ${{ secrets.HARBOR_KEY_ALIAS }}
           HARBOR_KEY_PASSWORD: ${{ secrets.HARBOR_KEY_PASSWORD }}
